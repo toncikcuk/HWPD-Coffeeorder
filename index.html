@@ -412,6 +412,12 @@
     </div>
     <div id="summaryContent"></div>
   </div>
+  
+  <!-- ================= HISTORY VIEW ================= -->
+<div class="view" id="view-history">
+  <div id="historyDateList"></div>
+  <div id="historyContent"></div>
+</div>
 
   <!-- Bottom nav -->
   <div class="bottomnav">
@@ -425,6 +431,9 @@
     <button class="navbtn" data-view="summary">
       <span class="icon">📋</span><span class="lbl">สรุปวันนี้</span>
     </button>
+    <button class="navbtn" data-view="history">
+  <span class="icon">🗓️</span><span class="lbl">ย้อนหลัง</span>
+  </button>
   </div>
 
 </div>
@@ -871,6 +880,139 @@ function renderSummary(){
   document.getElementById('saveImgBtn').addEventListener('click', saveReceiptImage);
 }
 
+  /* ====================== HISTORY VIEW ====================== */
+let historyDates = [];
+let selectedHistoryDate = null;
+
+async function loadHistoryDates(){
+  const listEl = document.getElementById('historyDateList');
+  listEl.innerHTML = `<div class="empty-state"><div>กำลังโหลด...</div></div>`;
+  try{
+    const res = await fetch(GAS_URL + '?action=getDates');
+    const data = await res.json();
+    if(data.ok){ historyDates = data.dates; }
+  }catch(err){ console.error(err); }
+  renderHistoryDateList();
+}
+
+function renderHistoryDateList(){
+  const listEl = document.getElementById('historyDateList');
+  const today = todayStr_();
+  if(historyDates.length===0){
+    listEl.innerHTML = `<div class="empty-state">
+      <div class="big">🗓️</div>
+      <div class="t">ยังไม่มีประวัติการสั่ง</div>
+    </div>`;
+    document.getElementById('historyContent').innerHTML = '';
+    return;
+  }
+  listEl.innerHTML = `
+    <div class="cat-heading">เลือกวันที่</div>
+    <div class="chips" style="position:static; margin:0 0 16px;">
+      ${historyDates.map(d=>`<div class="chip hist-chip ${d===selectedHistoryDate?'active':''}" data-date="${d}">${thaiDateFromStr_(d)}${d===today?' (วันนี้)':''}</div>`).join('')}
+    </div>
+  `;
+  listEl.querySelectorAll('.hist-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      selectedHistoryDate = chip.dataset.date;
+      renderHistoryDateList();
+      loadHistoryOrders(selectedHistoryDate);
+    });
+  });
+  if(!selectedHistoryDate && historyDates.length>0){
+    selectedHistoryDate = historyDates[0];
+    renderHistoryDateList();
+    loadHistoryOrders(selectedHistoryDate);
+  }
+}
+
+function todayStr_(){
+  // ให้ตรงกับรูปแบบ yyyy-MM-dd ฝั่ง client (ใช้ประมาณเทียบกับ label เท่านั้น)
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function thaiDateFromStr_(s){
+  const [y,m,d] = s.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return thaiDateLabel(dt);
+}
+
+async function loadHistoryOrders(date){
+  const contentEl = document.getElementById('historyContent');
+  contentEl.innerHTML = `<div class="empty-state"><div>กำลังโหลด...</div></div>`;
+  try{
+    const res = await fetch(GAS_URL + '?action=getByDate&date=' + date);
+    const data = await res.json();
+    if(data.ok){ renderHistoryReceipt(date, data.orders); }
+  }catch(err){
+    console.error(err);
+    contentEl.innerHTML = `<div class="empty-state"><div class="t">โหลดข้อมูลไม่สำเร็จ</div></div>`;
+  }
+}
+
+function renderHistoryReceipt(date, orders){
+  const contentEl = document.getElementById('historyContent');
+  if(orders.length===0){
+    contentEl.innerHTML = `<div class="empty-state">
+      <div class="big">📋</div>
+      <div class="t">ไม่มีออเดอร์ในวันนี้</div>
+    </div>`;
+    return;
+  }
+  const total = orders.reduce((s,o)=>s+Number(o.price),0);
+  const groups = {};
+  orders.forEach(o=>{
+    const key = [o.menu, o.sweet, o.ice].join('|');
+    if(!groups[key]) groups[key] = {menu:o.menu, sweet:o.sweet, ice:o.ice, qty:0, sum:0};
+    groups[key].qty++; groups[key].sum += Number(o.price);
+  });
+  const rowsHtml = Object.values(groups).map(g=>`
+    <div class="receipt-row">
+      <div class="rr-left">
+        <div class="rr-name">${g.menu} × ${g.qty}</div>
+        <div class="rr-meta">${g.sweet}${g.ice!=='-'?(' · '+g.ice):''}</div>
+      </div>
+      <div class="rr-price">${g.sum}฿</div>
+    </div>
+  `).join('');
+
+  contentEl.innerHTML = `
+    <div class="receipt-wrap">
+      <div class="receipt" id="historyReceiptCapture">
+        <div class="receipt-top">
+          <h3>☕ Café Amazon — สรุปย้อนหลัง</h3>
+          <div class="sub">${thaiDateFromStr_(date)} · ${orders.length} แก้ว</div>
+        </div>
+        <div class="perf-edge light"></div>
+        <div class="receipt-body">${rowsHtml}</div>
+        <div class="receipt-total"><span>รวมทั้งหมด</span><span class="num">${total} บาท</span></div>
+      </div>
+    </div>
+    <div class="save-btn-row">
+      <button class="btn btn-primary" id="saveHistoryImgBtn">📷 บันทึกเป็นรูปภาพ</button>
+    </div>
+  `;
+  document.getElementById('saveHistoryImgBtn').addEventListener('click', ()=>{
+    saveReceiptImageEl_(document.getElementById('historyReceiptCapture'), 'coffee-history-'+date+'.png');
+  });
+}
+
+async function saveReceiptImageEl_(node, fname){
+  showToast('กำลังสร้างรูปภาพ...');
+  try{
+    const canvas = await html2canvas(node, {scale:2, backgroundColor:'#fffdf6'});
+    const link = document.createElement('a');
+    link.download = fname;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('บันทึกรูปภาพแล้ว ✅');
+  }catch(err){
+    console.error(err);
+    showToast('บันทึกรูปไม่สำเร็จ');
+  }
+}
+
 async function saveReceiptImage(){
   const node = document.getElementById('receiptCapture');
   showToast('กำลังสร้างรูปภาพ...');
@@ -894,6 +1036,7 @@ function switchView(name){
   document.getElementById('view-'+name).classList.add('active');
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
   if(name==='summary') loadToday();
+  if(name==='history') loadHistoryDates();
 }
 document.querySelectorAll('.navbtn').forEach(btn=>{
   btn.addEventListener('click', ()=>switchView(btn.dataset.view));
