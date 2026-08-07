@@ -3,54 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>สั่งกาแฟ Café Amazon | ประชุม</title>
+<title>ตั๋วกาแฟ Café Amazon | ประชุม</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root{
-    --green-deep:#0B4228;
-    --green-mid:#1F6B45;
-    --green-soft:#E7F2EC;
-    --gold:#C9A24B;
-    --gold-soft:#F6ECD6;
-    --cream:#FAF6EE;
-    --espresso:#2B1B12;
-    --espresso-soft:#7A6A5F;
-    --ice:#3E8FB0;
-    --line-user:#06C755;
+    /* ---- token system: "coffee order ticket / counter queue" ---- */
+    --ink:#231a12;
+    --forest:#0F3626;
+    --forest-2:#1E6046;
+    --forest-tint:#E7EFE8;
+    --parchment:#F7F1E2;
+    --paper-2:#EFE6D0;
+    --amber:#C1852E;
+    --amber-soft:#F3E0B8;
+    --rust:#9C4426;
+    --line-dash:#C8B589;
     --white:#ffffff;
-    --danger:#C1503F;
-    --radius-lg:24px;
+    --radius-lg:26px;
     --radius-md:16px;
     --radius-sm:10px;
-    --shadow-glass:0 8px 30px rgba(11,66,40,0.12);
+    --shadow-glass:0 10px 34px rgba(15,54,38,0.16);
     --ease-ios:cubic-bezier(.36,.66,.04,1);
-    --nav-h:64px;
+    --header-h:78px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html{scroll-behavior:smooth;}
   html,body{margin:0;padding:0;}
   body{
-    font-family:-apple-system,BlinkMacSystemFont,'IBM Plex Sans Thai','Prompt',sans-serif;
-    background: radial-gradient(ellipse at top, #eef5ef 0%, #dfe7de 55%, #d3ddd2 100%);
-    color:var(--espresso);
+    font-family:'IBM Plex Sans Thai','Prompt',sans-serif;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(30,96,70,0.10), transparent 42%),
+      radial-gradient(circle at 88% 92%, rgba(193,133,46,0.10), transparent 40%),
+      #E3DEC8;
+    color:var(--ink);
     min-height:100vh;
     display:flex;
     justify-content:center;
     -webkit-font-smoothing:antialiased;
   }
-  h1,h2,h3,.display{font-family:'Prompt','IBM Plex Sans Thai',sans-serif;}
+  h1,h2,h3,.display{font-family:'Prompt',sans-serif;}
+  .num{font-family:'IBM Plex Mono',monospace;}
 
-  /* ================= APP SHELL =================
-     Mobile: phone-frame, single column, app-like.
-     Desktop (>=1024px): expands into a real two-pane webapp
-     — menu / summary on the left, a persistent live-cart panel on the right. */
+  /* perforation motif — signature element reused across cards/tickets */
+  .perf-edge{
+    height:12px;
+    background:radial-gradient(circle at 7px 0, transparent 6px, var(--forest) 6px) top/14px 12px repeat-x;
+  }
+  .perf-edge.light{
+    background:radial-gradient(circle at 7px 0, transparent 6px, var(--parchment) 6px) top/14px 12px repeat-x;
+  }
+
+  /* ================= APP SHELL ================= */
   #app{
     width:100%;
     max-width:520px;
     min-height:100vh;
-    background:var(--cream);
+    background:var(--parchment);
     position:relative;
     box-shadow:var(--shadow-glass);
     display:flex;
@@ -58,196 +68,234 @@
   }
   @media(min-width:560px) and (max-width:1023px){
     body{padding:28px 12px;}
-    #app{min-height:calc(100vh - 56px); border-radius:28px; overflow:hidden;}
+    #app{min-height:calc(100vh - 56px); border-radius:var(--radius-lg); overflow:hidden;}
   }
 
-  /* ---------- Header ---------- */
+  /* ---------- Header (counter signage) ---------- */
   .appbar{
-    background:linear-gradient(135deg,var(--green-deep),var(--green-mid) 70%);
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 26px),
+      linear-gradient(135deg,var(--forest),var(--forest-2) 78%);
     color:#fff;
-    padding:calc(16px + env(safe-area-inset-top)) 18px 14px;
+    padding:calc(16px + env(safe-area-inset-top)) 18px 16px;
     position:sticky; top:0; z-index:30;
   }
   .appbar-row{display:flex; align-items:center; gap:12px;}
   .appbar-avatar{
-    width:42px;height:42px;border-radius:50%;
-    background:var(--gold);
+    width:44px;height:44px;border-radius:50%;
+    background:var(--amber);
     display:flex;align-items:center;justify-content:center;
-    font-size:20px; flex-shrink:0;
-    box-shadow:inset 0 0 0 2px rgba(255,255,255,0.5);
+    font-size:21px; flex-shrink:0;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,0.45), 0 4px 10px rgba(0,0,0,0.18);
   }
-  .appbar-title{font-weight:600; font-size:17px; line-height:1.2;}
-  .appbar-sub{font-size:12px; opacity:0.85; margin-top:2px;}
+  .appbar-title{font-weight:700; font-size:17.5px; line-height:1.2; letter-spacing:.2px;}
+  .appbar-sub{font-size:11.5px; opacity:0.82; margin-top:2px; letter-spacing:.3px;}
   .appbar-date{
-    margin-left:auto; font-size:11px; background:rgba(255,255,255,0.16);
-    padding:6px 10px; border-radius:100px; white-space:nowrap;
+    margin-left:auto; font-size:11px; background:rgba(255,255,255,0.15);
+    padding:6px 11px; border-radius:100px; white-space:nowrap;
+    font-family:'IBM Plex Mono',monospace; border:1px solid rgba(255,255,255,0.18);
   }
 
-  /* ---------- Category chips (segmented control, sticky + scrollspy) ---------- */
+  /* ---------- Category bar — "order counter" queue tabs, always floats ---------- */
   .chips{
-    display:flex; gap:6px; overflow-x:auto; padding:10px; margin:12px 14px 0;
-    background:rgba(233,227,209,0.55); border-radius:100px;
-    position:sticky; top:78px; z-index:20;
+    display:flex; gap:6px; overflow-x:auto; padding:10px; margin:0 14px;
+    background:rgba(239,230,208,0.86);
+    backdrop-filter:blur(10px) saturate(160%);
+    -webkit-backdrop-filter:blur(10px) saturate(160%);
+    border-radius:100px;
+    position:sticky; top:var(--header-h); z-index:20;
     scrollbar-width:none;
+    border:1px solid rgba(200,181,137,0.55);
+    box-shadow:0 6px 16px rgba(15,54,38,0.08);
   }
   .chips::-webkit-scrollbar{display:none;}
   .chip{
     flex-shrink:0; padding:8px 15px; border-radius:100px; font-size:12.5px;
-    background:transparent; border:none; color:var(--espresso-soft);
-    font-weight:500; cursor:pointer; transition:.22s var(--ease-ios);
-    display:flex; align-items:center; gap:6px;
+    background:transparent; border:none; color:var(--forest);
+    font-weight:600; cursor:pointer; transition:.22s var(--ease-ios);
+    display:flex; align-items:center; gap:6px; opacity:0.62;
   }
-  .chip.active{background:var(--green-deep); color:#fff; box-shadow:0 3px 10px rgba(11,66,40,0.28);}
+  .chip.active{background:var(--forest); color:#fff; opacity:1; box-shadow:0 3px 10px rgba(15,54,38,0.32);}
+
+  .chips-spacer{height:14px;}
 
   /* ---------- Views ---------- */
-  .view{display:none; padding:14px; padding-bottom:calc(var(--nav-h) + 56px); flex:1;}
+  .view{display:none; padding:0 14px 14px; padding-bottom:calc(64px + 56px); flex:1;}
   .view.active{display:block;}
 
-  .cat-heading{font-size:14px; font-weight:600; color:var(--green-deep); margin:18px 4px 10px; scroll-margin-top:150px;}
-  .cat-heading:first-child{margin-top:2px;}
+  .cat-heading{
+    font-size:13.5px; font-weight:700; color:var(--forest); margin:20px 4px 10px;
+    scroll-margin-top:150px; display:flex; align-items:center; gap:8px;
+  }
+  .cat-heading::after{content:""; flex:1; height:1px; background:repeating-linear-gradient(90deg, var(--line-dash) 0 5px, transparent 5px 10px);}
+  .cat-heading:first-child{margin-top:16px;}
 
   .menu-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
   .menu-card{
-    background:rgba(255,255,255,0.78);
-    backdrop-filter:blur(6px);
-    border:1px solid rgba(255,255,255,0.6);
+    background:var(--white);
+    border:1px solid rgba(200,181,137,0.45);
     border-radius:var(--radius-md);
-    padding:12px;
-    box-shadow:0 4px 14px rgba(43,27,18,0.06);
+    padding:13px 12px 11px;
+    box-shadow:0 4px 14px rgba(35,26,18,0.06);
     display:flex; flex-direction:column; gap:6px;
-    cursor:pointer; transition:transform .18s var(--ease-ios), box-shadow .18s var(--ease-ios);
+    cursor:pointer; transition:transform .18s var(--ease-ios), box-shadow .18s var(--ease-ios), border-color .18s;
+    position:relative; overflow:hidden;
   }
-  .menu-card:hover{box-shadow:0 8px 20px rgba(43,27,18,0.1); transform:translateY(-1px);}
+  .menu-card::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg,var(--amber),var(--forest-2));
+    opacity:0; transition:opacity .2s var(--ease-ios);
+  }
+  .menu-card:hover{box-shadow:0 10px 22px rgba(35,26,18,0.12); transform:translateY(-2px); border-color:var(--amber);}
+  .menu-card:hover::before{opacity:1;}
   .menu-card:active{transform:scale(0.96);}
   .menu-icon{
-    width:44px;height:44px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center; font-size:22px;
-    background:var(--green-soft);
+    width:42px;height:42px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center; font-size:20px;
+    background:var(--forest-tint);
+    box-shadow:inset 0 0 0 1px rgba(15,54,38,0.08);
   }
-  .menu-icon.cold{background:#E4F2F7;}
-  .menu-icon.blend{background:var(--gold-soft);}
+  .menu-icon.cold{background:#E3EEF2;}
+  .menu-icon.blend{background:var(--amber-soft);}
   .menu-name{font-size:13.5px; font-weight:600; line-height:1.3;}
-  .menu-price{font-size:12.5px; color:var(--espresso-soft); font-weight:500;}
+  .menu-price{font-size:12.5px; color:var(--forest-2); font-weight:600;}
   .menu-add{
     margin-top:auto; align-self:flex-end;
-    font-size:12px; color:var(--green-deep); font-weight:600;
+    font-size:11.5px; color:var(--amber); font-weight:700;
     display:flex; align-items:center; gap:3px;
   }
 
-  /* ---------- Chat log (signature element) ---------- */
-  .chatlog{margin-bottom:16px; display:flex; flex-direction:column; gap:8px;}
-  .chatlog-empty{
-    text-align:center; color:var(--espresso-soft); font-size:12.5px;
-    padding:18px 10px; background:rgba(255,255,255,0.5); border-radius:var(--radius-md);
+  /* ---------- Cart panel heading (chat replaced with "order tickets") ---------- */
+  .cartpanel-heading{
+    display:flex; align-items:center; justify-content:space-between;
+    margin:16px 4px 10px;
   }
-  .bubble-row{display:flex; flex-direction:column; align-items:flex-end;}
-  .bubble{
-    background:var(--line-user); color:#fff; padding:9px 13px; border-radius:16px 16px 4px 16px;
-    font-size:13px; max-width:82%; line-height:1.45; box-shadow:0 2px 6px rgba(6,199,85,0.25);
-  }
-  .bubble b{font-weight:700;}
-  .bubble-time{font-size:10px; color:var(--espresso-soft); margin-top:3px; margin-right:2px;}
-  .bubble-row.system{align-items:flex-start;}
-  .bubble-row.system .bubble{
-    background:#fff; color:var(--espresso); border-radius:16px 16px 16px 4px;
-    border:1px solid #e7e0d1;
-  }
+  .cartpanel-heading h3{font-size:14.5px; margin:0; color:var(--forest); font-weight:700;}
+  .cartpanel-heading span{font-size:11px; color:#8a7c65;}
 
-  /* ---------- Cart ---------- */
+  .chatlog{margin-bottom:14px; display:flex; flex-direction:column; gap:8px;}
+  .chatlog-empty{
+    text-align:center; color:#8a7c65; font-size:12.5px;
+    padding:20px 12px; background:rgba(255,255,255,0.6); border:1px dashed var(--line-dash);
+    border-radius:var(--radius-md);
+  }
+  .bubble-row{display:flex; flex-direction:column; align-items:flex-start;}
+  .bubble{
+    background:var(--white); color:var(--ink); padding:9px 13px 9px 12px;
+    border-radius:4px var(--radius-sm) var(--radius-sm) var(--radius-sm);
+    font-size:12.8px; max-width:92%; line-height:1.5;
+    border-left:3px solid var(--amber);
+    box-shadow:0 2px 8px rgba(35,26,18,0.06);
+  }
+  .bubble b{font-weight:700; color:var(--forest);}
+  .bubble-time{font-size:10px; color:#a3937a; margin-top:3px; margin-left:2px; font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- Cart items — ticket stub shape ---------- */
   .cart-item{
     display:flex; gap:10px; align-items:center; background:#fff; border-radius:var(--radius-md);
-    padding:10px 12px; margin-bottom:8px; border:1px solid #eee3cf;
+    padding:10px 12px; margin-bottom:8px; border:1px solid var(--paper-2);
+    position:relative;
   }
-  .cart-item .ci-icon{width:34px;height:34px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .cart-item::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
+    background:repeating-linear-gradient(180deg, var(--forest-2) 0 5px, transparent 5px 10px);
+    border-radius:3px 0 0 3px;
+  }
+  .cart-item .ci-icon{width:34px;height:34px;border-radius:50%;background:var(--forest-tint);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
   .cart-item .ci-info{flex:1; min-width:0;}
   .ci-name{font-size:13px; font-weight:600;}
-  .ci-meta{font-size:11.5px; color:var(--espresso-soft); margin-top:2px;}
-  .ci-price{font-size:13px; font-weight:600; color:var(--green-deep); flex-shrink:0;}
+  .ci-meta{font-size:11.5px; color:#8a7c65; margin-top:2px;}
+  .ci-price{font-size:13px; font-weight:600; color:var(--forest-2); flex-shrink:0; font-family:'IBM Plex Mono',monospace;}
   .ci-del{
-    background:none; border:none; color:var(--danger); font-size:18px; cursor:pointer; padding:4px 6px; flex-shrink:0;
+    background:none; border:none; color:var(--rust); font-size:17px; cursor:pointer; padding:4px 6px; flex-shrink:0;
+    border-radius:50%; transition:background .15s;
   }
-  .cart-empty{text-align:center; padding:40px 20px; color:var(--espresso-soft);}
+  .ci-del:hover{background:rgba(156,68,38,0.1);}
+  .cart-empty{text-align:center; padding:40px 20px; color:#8a7c65;}
   .cart-empty .big{font-size:34px; margin-bottom:8px;}
 
   .cart-summary-bar{
     display:flex; justify-content:space-between; align-items:center;
-    padding:14px 4px; margin-top:8px; border-top:1px dashed #c9bfa2; font-weight:600;
+    padding:14px 4px; margin-top:6px; border-top:1px dashed var(--line-dash); font-weight:700;
   }
+  .cart-summary-bar .num{color:var(--forest); font-size:15px;}
+
   .btn{
     display:block; width:100%; text-align:center; border:none; border-radius:100px;
-    padding:14px; font-size:14.5px; font-weight:600; cursor:pointer; font-family:inherit;
-    transition:transform .15s var(--ease-ios), opacity .15s var(--ease-ios);
+    padding:14px; font-size:14.5px; font-weight:700; cursor:pointer; font-family:'Prompt',sans-serif;
+    transition:transform .15s var(--ease-ios), opacity .15s var(--ease-ios), box-shadow .15s;
+    letter-spacing:.2px;
   }
   .btn:active{transform:scale(0.97);}
-  .btn-primary{background:var(--green-deep); color:#fff;}
-  .btn-primary:disabled{background:#b9c7bd; cursor:not-allowed;}
-  .btn-secondary{background:var(--gold-soft); color:var(--espresso); }
-  .btn-outline{background:#fff; color:var(--green-deep); border:1.5px solid var(--green-deep);}
+  .btn-primary{background:var(--forest); color:#fff; box-shadow:0 6px 16px rgba(15,54,38,0.28);}
+  .btn-primary:disabled{background:#b7b09b; cursor:not-allowed; box-shadow:none;}
+  .btn-secondary{background:var(--amber-soft); color:var(--ink);}
+  .btn-outline{background:#fff; color:var(--forest); border:1.5px solid var(--forest);}
 
   /* ---------- Summary / receipt ---------- */
-  .subtabs{display:flex; gap:8px; margin-bottom:14px;}
-  .subtab{flex:1; text-align:center; padding:9px; border-radius:100px; font-size:12.5px; font-weight:600; background:#fff; border:1px solid #e2dcce; cursor:pointer; color:var(--espresso-soft); transition:.2s var(--ease-ios);}
-  .subtab.active{background:var(--green-deep); color:#fff; border-color:var(--green-deep);}
+  .subtabs{display:flex; gap:8px; margin:16px 0 14px;}
+  .subtab{flex:1; text-align:center; padding:9px; border-radius:100px; font-size:12.5px; font-weight:700; background:#fff; border:1px solid var(--paper-2); cursor:pointer; color:#8a7c65; transition:.2s var(--ease-ios);}
+  .subtab.active{background:var(--forest); color:#fff; border-color:var(--forest);}
 
   .receipt-wrap{background:transparent; padding:6px 0 18px;}
   .receipt{
-    background:#fffdf8; border-radius:14px; position:relative; overflow:hidden;
-    box-shadow:0 10px 28px rgba(43,27,18,0.14);
+    background:#fffdf6; border-radius:14px; position:relative; overflow:hidden;
+    box-shadow:0 14px 32px rgba(35,26,18,0.16);
   }
-  .receipt-top{background:var(--green-deep); color:#fff; padding:18px 20px 14px; position:relative;}
-  .receipt-top h3{margin:0; font-size:16px;}
-  .receipt-top .sub{font-size:11.5px; opacity:0.85; margin-top:4px;}
-  .receipt-perf{
-    height:14px; background:
-      radial-gradient(circle at 8px 0, transparent 7px, var(--green-deep) 7px) top/16px 14px repeat-x;
-    margin-top:-1px;
+  .receipt-top{
+    background:linear-gradient(135deg,var(--forest),var(--forest-2) 80%);
+    color:#fff; padding:18px 20px 14px; position:relative;
   }
+  .receipt-top h3{margin:0; font-size:16px; font-family:'Prompt',sans-serif;}
+  .receipt-top .sub{font-size:11.5px; opacity:0.82; margin-top:4px; font-family:'IBM Plex Mono',monospace;}
   .receipt-body{padding:6px 20px 4px;}
-  .receipt-row{display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px dashed #e2d9c2; font-size:13px;}
+  .receipt-row{display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px dashed #e2d5b0; font-size:13px;}
   .receipt-row:last-child{border-bottom:none;}
   .rr-left{flex:1;}
   .rr-name{font-weight:600;}
-  .rr-meta{font-size:11px; color:var(--espresso-soft); margin-top:2px;}
-  .rr-price{font-weight:600; white-space:nowrap;}
+  .rr-meta{font-size:11px; color:#8a7c65; margin-top:2px;}
+  .rr-price{font-weight:700; white-space:nowrap; font-family:'IBM Plex Mono',monospace; color:var(--forest-2);}
   .receipt-total{
     display:flex; justify-content:space-between; padding:14px 20px 18px; font-weight:700; font-size:15px;
-    background:var(--gold-soft); margin-top:6px;
+    background:var(--amber-soft); margin-top:6px; font-family:'Prompt',sans-serif;
   }
-  .receipt-foot{text-align:center; font-size:10.5px; color:var(--espresso-soft); padding:10px 0 16px;}
+  .receipt-total .num{font-family:'IBM Plex Mono',monospace;}
+  .receipt-foot{text-align:center; font-size:10.5px; color:#a3937a; padding:10px 0 16px;}
 
-  .empty-state{text-align:center; padding:50px 20px; color:var(--espresso-soft);}
+  .empty-state{text-align:center; padding:50px 20px; color:#8a7c65;}
   .empty-state .big{font-size:36px; margin-bottom:10px;}
-  .empty-state .t{font-weight:600; color:var(--espresso); margin-bottom:4px; font-size:14px;}
+  .empty-state .t{font-weight:700; color:var(--ink); margin-bottom:4px; font-size:14px; font-family:'Prompt',sans-serif;}
 
-  /* ---------- Bottom nav — floats above content on mobile so it never blocks scrolling ---------- */
+  /* ---------- Bottom nav ---------- */
   .bottomnav{
     position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom));
     transform:translateX(-50%);
     width:calc(100% - 32px); max-width:460px;
     display:flex; gap:2px; padding:6px; z-index:40;
-    background:rgba(255,253,248,0.72);
+    background:rgba(247,241,226,0.82);
     backdrop-filter:blur(20px) saturate(180%);
     -webkit-backdrop-filter:blur(20px) saturate(180%);
     border:1px solid rgba(255,255,255,0.6);
     border-radius:22px;
-    box-shadow:0 12px 30px rgba(11,66,40,0.2), 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow:0 12px 30px rgba(15,54,38,0.22), 0 2px 8px rgba(0,0,0,0.06);
   }
   .navbtn{
     flex:1; text-align:center; padding:9px 4px 7px; background:none; border:none; cursor:pointer;
-    color:var(--espresso-soft); font-family:inherit; position:relative;
+    color:#8a7c65; font-family:'Prompt',sans-serif; position:relative;
     border-radius:16px; transition:background .22s var(--ease-ios), color .22s var(--ease-ios);
   }
   .navbtn .icon{font-size:18px; display:block;}
-  .navbtn .lbl{font-size:10.5px; margin-top:2px; font-weight:500;}
-  .navbtn.active{color:var(--white); background:var(--green-deep);}
+  .navbtn .lbl{font-size:10.5px; margin-top:2px; font-weight:600;}
+  .navbtn.active{color:var(--white); background:var(--forest);}
   .navbadge{
-    position:absolute; top:2px; right:calc(50% - 22px); background:var(--danger); color:#fff;
+    position:absolute; top:2px; right:calc(50% - 22px); background:var(--rust); color:#fff;
     font-size:9.5px; min-width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; padding:0 3px;
+    font-family:'IBM Plex Mono',monospace;
   }
 
   /* ---------- Modal ---------- */
   .modal-backdrop{
-    position:fixed; inset:0; background:rgba(11,20,15,0.45); z-index:100;
+    position:fixed; inset:0; background:rgba(15,20,15,0.5); z-index:100;
     backdrop-filter:blur(3px);
     display:none; align-items:flex-end; justify-content:center;
   }
@@ -259,89 +307,76 @@
   }
   @keyframes slideup{from{transform:translateY(40px); opacity:0;} to{transform:translateY(0); opacity:1;}}
   .modal-head{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
-  .modal-icon{width:48px;height:48px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:24px;}
-  .modal-title{font-size:16px; font-weight:600;}
-  .modal-price{font-size:13px; color:var(--green-deep); font-weight:600; margin-top:2px;}
-  .field-label{font-size:12.5px; font-weight:600; margin:14px 0 6px; color:var(--espresso);}
+  .modal-icon{width:48px;height:48px;border-radius:50%;background:var(--forest-tint);display:flex;align-items:center;justify-content:center;font-size:24px;}
+  .modal-title{font-size:16px; font-weight:700; font-family:'Prompt',sans-serif;}
+  .modal-price{font-size:13px; color:var(--forest-2); font-weight:600; margin-top:2px; font-family:'IBM Plex Mono',monospace;}
+  .field-label{font-size:12.5px; font-weight:700; margin:14px 0 6px; color:var(--ink);}
   .field-input{
-    width:100%; padding:12px 14px; border-radius:12px; border:1.5px solid #e2dcce;
-    font-size:14px; font-family:inherit; background:#faf8f2;
+    width:100%; padding:12px 14px; border-radius:12px; border:1.5px solid var(--paper-2);
+    font-size:14px; font-family:inherit; background:#fbf7ec;
   }
-  .field-input:focus{outline:none; border-color:var(--green-mid);}
+  .field-input:focus{outline:none; border-color:var(--forest-2);}
   .opt-row{display:flex; gap:8px; flex-wrap:wrap;}
   .opt-pill{
-    padding:8px 14px; border-radius:100px; border:1.5px solid #e2dcce; background:#fff;
-    font-size:12.5px; cursor:pointer; color:var(--espresso-soft); font-weight:500; transition:.2s var(--ease-ios);
+    padding:8px 14px; border-radius:100px; border:1.5px solid var(--paper-2); background:#fff;
+    font-size:12.5px; cursor:pointer; color:#8a7c65; font-weight:600; transition:.2s var(--ease-ios);
   }
-  .opt-pill.sel{background:var(--green-deep); border-color:var(--green-deep); color:#fff;}
+  .opt-pill.sel{background:var(--forest); border-color:var(--forest); color:#fff;}
   .modal-actions{display:flex; gap:10px; margin-top:20px;}
 
   .toast{
-    position:fixed; bottom:calc(var(--nav-h) + 42px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
-    background:var(--espresso); color:#fff; padding:10px 18px; border-radius:100px;
+    position:fixed; bottom:calc(64px + 42px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:10px 18px; border-radius:100px;
     font-size:12.5px; z-index:200; opacity:0; pointer-events:none; transition:.28s var(--ease-ios);
     white-space:nowrap;
   }
-  .toast.show{opacity:1; bottom:calc(var(--nav-h) + 52px + env(safe-area-inset-bottom));}
+  .toast.show{opacity:1; bottom:calc(64px + 52px + env(safe-area-inset-bottom));}
 
   .save-btn-row{display:flex; gap:10px; padding:0 0 14px;}
 
   ::-webkit-scrollbar{width:0; height:0;}
 
-  /* ================= DESKTOP WEBAPP LAYOUT =================
-     Real two-pane app: browse / summary on the left, a persistent
-     live cart panel pinned on the right — no more switching views
-     to see what's in the cart. */
+  /* ================= DESKTOP WEBAPP LAYOUT ================= */
   @media(min-width:1024px){
     body{padding:32px 20px;}
     #app{
-      max-width:1140px;
+      max-width:1160px;
+      height:100vh;
+      overflow-y:auto;
+      overflow-x:hidden;
       display:grid;
-      grid-template-columns:1fr 380px;
+      grid-template-columns:1fr 390px;
       grid-template-rows:auto auto 1fr;
-      border-radius:28px;
-      overflow:hidden;
-      box-shadow:0 24px 60px rgba(11,66,40,0.16);
-      min-height:0;
+      border-radius:var(--radius-lg);
+      box-shadow:0 26px 64px rgba(15,54,38,0.2);
     }
-    .appbar{grid-column:1/3; grid-row:1; padding:20px 28px 16px;}
+    .appbar{grid-column:1/3; grid-row:1; padding:20px 28px 16px; border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
     .appbar-title{font-size:19px;}
 
-    /* nav becomes a static horizontal tab bar under the header, not a floating pill */
     .bottomnav{
       position:static; transform:none; width:auto; max-width:none;
       grid-column:1/3; grid-row:2;
       border-radius:0; box-shadow:none;
       background:rgba(255,255,255,0.85);
-      border-bottom:1px solid #e7e0d1;
+      border-bottom:1px solid var(--paper-2);
       padding:10px 24px; gap:6px;
     }
     .navbtn{flex:0 0 auto; padding:9px 22px;}
-    .navbtn-cart{display:none;} /* the cart is always visible in the right panel */
+    .navbtn-cart{display:none;}
 
-    .view{grid-column:1; grid-row:3; padding:26px 28px; padding-bottom:40px;}
+    .view{grid-column:1; grid-row:3; padding:26px 28px 40px; border-radius:0 0 0 var(--radius-lg);}
     .menu-grid{grid-template-columns:repeat(3,1fr); gap:16px;}
-    .chips{position:sticky; top:0; margin:0 0 4px;}
+    .chips{position:sticky; top:var(--header-h); margin:0 0 4px;}
 
-    /* persistent live-cart panel */
-      #view-cart{
-    display:flex !important; flex-direction:column;
-    grid-column:2; 
-    grid-row:2/4;              /* ให้เท่าเดิมได้ แต่ */
-    align-self:stretch;        /* ⬅️ เพิ่ม แทน align-self:start */
-    position:sticky; 
-    top:0;
-    height:100vh;
-    padding:20px 20px calc(20px + env(safe-area-inset-bottom));
-    background:#fff;
-    border-left:1px solid #eee3cf;
-    overflow-y:auto;
-    z-index:10;                /* ⬅️ กันทับ appbar โดยไม่ตั้งใจ */
-    }
-    #view-cart::before{
-      content:"ตะกร้า & รายการสด";
-      font-size:13px; font-weight:600; color:var(--green-deep);
-      margin-bottom:10px; display:block;
+    #view-cart{
+      display:flex !important; flex-direction:column;
+      grid-column:2; grid-row:2/4;
+      padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+      background:#fff;
+      border-left:1px solid var(--paper-2);
+      position:sticky; top:0; align-self:start;
+      height:100%; overflow-y:auto;
+      border-radius:0 0 var(--radius-lg) 0;
     }
   }
   @media(min-width:1400px){
@@ -358,7 +393,7 @@
       <div class="appbar-avatar">☕</div>
       <div>
         <div class="appbar-title">Café Amazon</div>
-        <div class="appbar-sub">สั่งกาแฟงานประชุม</div>
+        <div class="appbar-sub">ตั๋วสั่งกาแฟ · งานประชุม</div>
       </div>
       <div class="appbar-date" id="todayLabel">-</div>
     </div>
@@ -367,11 +402,13 @@
   <!-- ================= MENU VIEW ================= -->
   <div class="view active" id="view-menu">
     <div class="chips" id="catChips"></div>
+    <div class="chips-spacer"></div>
     <div id="menuContainer"></div>
   </div>
 
   <!-- ================= CART VIEW (persistent panel on desktop) ================= -->
   <div class="view" id="view-cart">
+    <div class="cartpanel-heading"><h3>ตั๋วที่กำลังสั่ง</h3><span id="cartCountLbl"></span></div>
     <div class="chatlog" id="chatlog"></div>
     <div id="cartList"></div>
     <div id="cartFooter"></div>
@@ -386,13 +423,13 @@
     <div id="summaryContent"></div>
   </div>
 
-  <!-- Bottom nav (floating pill on mobile, static tab bar on desktop) -->
+  <!-- Bottom nav -->
   <div class="bottomnav">
     <button class="navbtn active" data-view="menu">
       <span class="icon">☕</span><span class="lbl">สั่งเครื่องดื่ม</span>
     </button>
     <button class="navbtn navbtn-cart" data-view="cart">
-      <span class="icon">🧾</span><span class="lbl">ตะกร้า</span>
+      <span class="icon">🎫</span><span class="lbl">ตะกร้า</span>
       <span class="navbadge" id="cartBadge" style="display:none;">0</span>
     </button>
     <button class="navbtn" data-view="summary">
@@ -413,7 +450,7 @@
       </div>
     </div>
 
-    <div class="field-label">ชื่อผู้สั่ง <span style="color:#C1503F">*</span></div>
+    <div class="field-label">ชื่อผู้สั่ง <span style="color:#9C4426">*</span></div>
     <input type="text" class="field-input" id="mOrderer" placeholder="พิมพ์ชื่อผู้สั่ง เช่น ผบ.ร้อย, จ่าสมชาย">
 
     <div class="field-label">ความหวาน</div>
@@ -439,8 +476,7 @@
 // วาง URL ของ Google Apps Script Web App ที่ deploy แล้วตรงนี้
 const GAS_URL = "https://script.google.com/macros/s/XXXXXXXXXXXXXXXXXXXXXXXX/exec";
 
-/* ====================== MENU DATA ======================
-   ราคาโดยประมาณ ปรับแก้ได้ตามจริงของสาขา */
+/* ====================== MENU DATA ====================== */
 const MENU = [
   { cat:"กาแฟร้อน", icon:"☕", type:"hot", items:[
     {name:"เอสเปรสโซ่", price:45},
@@ -479,8 +515,8 @@ const SWEET_OPTS = ["หวานปกติ","หวานน้อย","ไ�
 const ICE_OPTS = ["น้ำแข็งปกติ","น้ำแข็งน้อย","ไม่ใส่น้ำแข็ง"];
 
 /* ====================== STATE ====================== */
-let cart = [];          // ยังไม่ส่ง
-let chatEvents = [];    // สำหรับ chat log ฝั่งตะกร้า
+let cart = [];          // ยังไม่ส่ง — each item has a unique localId
+let chatEvents = [];    // ตั๋ว/ข้อความในตะกร้า — each carries the SAME localId as its cart item
 let todayOrders = [];   // ข้อมูลที่ส่งไปแล้ว (จาก sheet)
 let currentItem = null;
 let currentSelSweet = SWEET_OPTS[0];
@@ -494,6 +530,19 @@ function thaiDateLabel(d){
   return d.getDate() + " " + months[d.getMonth()] + " " + be;
 }
 document.getElementById('todayLabel').textContent = thaiDateLabel(new Date());
+
+/* ====================== STICKY HEADER OFFSET ======================
+   วัดความสูงจริงของ appbar แล้วตั้งค่าตัวแปร CSS --header-h
+   เพื่อให้แถบหมวดหมู่ (chips) sticky ได้ถูกตำแหน่งเสมอ ไม่ว่าจะเปิดจากมือถือหรือคอมพิวเตอร์ */
+function syncHeaderHeight(){
+  const bar = document.querySelector('.appbar');
+  if(!bar) return;
+  const h = bar.getBoundingClientRect().height;
+  document.documentElement.style.setProperty('--header-h', h + 'px');
+}
+window.addEventListener('load', syncHeaderHeight);
+window.addEventListener('resize', syncHeaderHeight);
+syncHeaderHeight();
 
 /* ====================== RENDER MENU ====================== */
 const catChipsEl = document.getElementById('catChips');
@@ -517,7 +566,6 @@ function renderChips(){
       if(target){
         suppressScrollSpy = true;
         target.scrollIntoView({behavior:'smooth', block:'start'});
-        // re-enable scrollspy after the smooth scroll settles
         clearTimeout(window.__spyTimer);
         window.__spyTimer = setTimeout(()=>{ suppressScrollSpy = false; }, 700);
       }
@@ -535,7 +583,7 @@ function renderMenu(){
           return `<div class="menu-card" data-cat="${c.cat}" data-icon="${c.icon}" data-name="${it.name}" data-price="${it.price}" data-type="${t}">
             <div class="menu-icon ${iconClassFor(t)}">${c.icon}</div>
             <div class="menu-name">${it.name}</div>
-            <div class="menu-price">${it.price} บาท</div>
+            <div class="menu-price num">${it.price} บาท</div>
             <div class="menu-add">+ เพิ่ม</div>
           </div>`;
         }).join('')}
@@ -555,7 +603,7 @@ function renderMenu(){
 renderChips();
 renderMenu();
 
-/* ====================== SCROLLSPY (highlights the chip for the category in view) ====================== */
+/* ====================== SCROLLSPY ====================== */
 function setupScrollSpy(){
   if(!('IntersectionObserver' in window)) return;
   if(window.__catObserver) window.__catObserver.disconnect();
@@ -620,15 +668,17 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
     return;
   }
   const note = document.getElementById('mNote').value.trim();
+  const localId = 'c'+Date.now()+Math.random().toString(36).slice(2,7);
   const entry = {
-    localId: 'c'+Date.now()+Math.random().toString(36).slice(2,7),
-    name: orderer, category: currentItem.cat, menu: currentItem.name,
+    localId, name: orderer, category: currentItem.cat, menu: currentItem.name,
     icon: currentItem.icon, sweet: currentSelSweet,
     ice: currentItem.type==="cold" ? currentSelIce : "-",
     price: currentItem.price, note: note
   };
   cart.push(entry);
-  chatEvents.push({who:orderer, text: buildOrderText(entry), time: nowTimeLabel()});
+  // ผูกตั๋ว/ข้อความเข้ากับ localId เดียวกับรายการในตะกร้า
+  // เพื่อให้ลบรายการแล้วข้อความที่แสดงหายไปด้วย
+  chatEvents.push({localId, who:orderer, text: buildOrderText(entry), time: nowTimeLabel()});
   renderCart();
   updateCartBadge();
   showToast(`เพิ่ม ${currentItem.name} ให้คุณ${orderer} แล้ว`);
@@ -660,11 +710,14 @@ function showToast(msg){
 /* ====================== CART VIEW ====================== */
 function renderCart(){
   const chatlogEl = document.getElementById('chatlog');
+  const countLbl = document.getElementById('cartCountLbl');
+  countLbl.textContent = cart.length > 0 ? cart.length + ' รายการ' : '';
+
   if(chatEvents.length===0){
-    chatlogEl.innerHTML = `<div class="chatlog-empty">ยังไม่มีรายการในตะกร้า เลือกเมนูจากแท็บ "สั่งเครื่องดื่ม" ได้เลย</div>`;
+    chatlogEl.innerHTML = `<div class="chatlog-empty">ยังไม่มีตั๋วในตะกร้า เลือกเมนูจากแท็บ "สั่งเครื่องดื่ม" ได้เลย</div>`;
   } else {
     chatlogEl.innerHTML = chatEvents.map(ev=>`
-      <div class="bubble-row">
+      <div class="bubble-row" data-id="${ev.localId}">
         <div class="bubble">${ev.text}</div>
         <div class="bubble-time">${ev.time}</div>
       </div>
@@ -685,20 +738,23 @@ function renderCart(){
         <div class="ci-name">${it.menu} — คุณ${it.name}</div>
         <div class="ci-meta">${it.sweet}${it.ice!=='-'?(' · '+it.ice):''}${it.note?(' · '+it.note):''}</div>
       </div>
-      <div class="ci-price">${it.price}฿</div>
+      <div class="ci-price num">${it.price}฿</div>
       <button class="ci-del" data-id="${it.localId}">✕</button>
     </div>
   `).join('');
   listEl.querySelectorAll('.ci-del').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      cart = cart.filter(c=>c.localId !== btn.dataset.id);
+      const id = btn.dataset.id;
+      // ลบทั้งรายการในตะกร้า และตั๋ว/ข้อความที่ผูกกับรายการนั้น (localId เดียวกัน)
+      cart = cart.filter(c=>c.localId !== id);
+      chatEvents = chatEvents.filter(ev=>ev.localId !== id);
       renderCart(); updateCartBadge();
     });
   });
 
   const total = cart.reduce((s,i)=>s+i.price,0);
   footEl.innerHTML = `
-    <div class="cart-summary-bar"><span>รวม ${cart.length} แก้ว</span><span>${total} บาท</span></div>
+    <div class="cart-summary-bar"><span>รวม ${cart.length} แก้ว</span><span class="num">${total} บาท</span></div>
     <button class="btn btn-primary" id="submitCartBtn">ยืนยันสั่งซื้อ (${cart.length} แก้ว)</button>
   `;
   document.getElementById('submitCartBtn').addEventListener('click', submitCart);
@@ -810,9 +866,9 @@ function renderSummary(){
           <h3>☕ Café Amazon — สรุปวันนี้</h3>
           <div class="sub">${thaiDateLabel(new Date())} · ${todayOrders.length} แก้ว</div>
         </div>
-        <div class="receipt-perf"></div>
+        <div class="perf-edge light"></div>
         <div class="receipt-body">${rowsHtml}</div>
-        <div class="receipt-total"><span>รวมทั้งหมด</span><span>${total} บาท</span></div>
+        <div class="receipt-total"><span>รวมทั้งหมด</span><span class="num">${total} บาท</span></div>
         <div class="receipt-foot">ใช้รูปนี้อ้างอิงตอนสั่งที่ร้าน Café Amazon</div>
       </div>
     </div>
@@ -829,7 +885,7 @@ async function saveReceiptImage(){
   const node = document.getElementById('receiptCapture');
   showToast('กำลังสร้างรูปภาพ...');
   try{
-    const canvas = await html2canvas(node, {scale:2, backgroundColor:'#fffdf8'});
+    const canvas = await html2canvas(node, {scale:2, backgroundColor:'#fffdf6'});
     const link = document.createElement('a');
     const fname = 'coffee-order-' + new Date().toISOString().slice(0,10) + '.png';
     link.download = fname;
