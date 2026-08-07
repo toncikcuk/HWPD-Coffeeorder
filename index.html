@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>สั่งกาแฟ Café Amazon | ประชุม</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --green-deep:#0B4228;
+    --green-mid:#1F6B45;
+    --green-soft:#E7F2EC;
+    --gold:#C9A24B;
+    --gold-soft:#F6ECD6;
+    --cream:#FAF6EE;
+    --espresso:#2B1B12;
+    --espresso-soft:#7A6A5F;
+    --ice:#3E8FB0;
+    --line-user:#06C755;
+    --white:#ffffff;
+    --danger:#C1503F;
+    --radius-lg:22px;
+    --radius-md:16px;
+    --radius-sm:10px;
+    --shadow-glass:0 8px 30px rgba(11,66,40,0.12);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'IBM Plex Sans Thai','Prompt',-apple-system,BlinkMacSystemFont,sans-serif;
+    background: radial-gradient(ellipse at top, #eef5ef 0%, #dfe7de 55%, #d3ddd2 100%);
+    color:var(--espresso);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  h1,h2,h3,.display{font-family:'Prompt','IBM Plex Sans Thai',sans-serif;}
+
+  /* Phone-frame app shell, mimics a LINE chat/order webview on any screen size */
+  #app{
+    width:100%;
+    max-width:520px;
+    min-height:100vh;
+    background:var(--cream);
+    position:relative;
+    box-shadow:var(--shadow-glass);
+    display:flex;
+    flex-direction:column;
+  }
+  @media(min-width:560px){
+    body{padding:28px 12px;}
+    #app{min-height:calc(100vh - 56px); border-radius:28px; overflow:hidden;}
+  }
+
+  /* ---------- Header ---------- */
+  .appbar{
+    background:linear-gradient(135deg,var(--green-deep),var(--green-mid) 70%);
+    color:#fff;
+    padding:16px 18px 14px;
+    position:sticky; top:0; z-index:30;
+  }
+  .appbar-row{display:flex; align-items:center; gap:12px;}
+  .appbar-avatar{
+    width:42px;height:42px;border-radius:50%;
+    background:var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px; flex-shrink:0;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,0.5);
+  }
+  .appbar-title{font-weight:600; font-size:17px; line-height:1.2;}
+  .appbar-sub{font-size:12px; opacity:0.85; margin-top:2px;}
+  .appbar-date{
+    margin-left:auto; font-size:11px; background:rgba(255,255,255,0.16);
+    padding:6px 10px; border-radius:100px; white-space:nowrap;
+  }
+
+  /* ---------- Category chips ---------- */
+  .chips{
+    display:flex; gap:8px; overflow-x:auto; padding:12px 14px;
+    background:var(--cream); position:sticky; top:78px; z-index:20;
+    border-bottom:1px solid #e7e0d1; scrollbar-width:none;
+  }
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex-shrink:0; padding:8px 16px; border-radius:100px; font-size:13px;
+    background:#fff; border:1px solid #e2dcce; color:var(--espresso-soft);
+    font-weight:500; cursor:pointer; transition:.15s;
+    display:flex; align-items:center; gap:6px;
+  }
+  .chip.active{background:var(--green-deep); color:#fff; border-color:var(--green-deep);}
+
+  /* ---------- Views ---------- */
+  .view{display:none; padding:14px; padding-bottom:100px; flex:1;}
+  .view.active{display:block;}
+
+  .cat-heading{font-size:14px; font-weight:600; color:var(--green-deep); margin:18px 4px 10px;}
+  .cat-heading:first-child{margin-top:2px;}
+
+  .menu-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .menu-card{
+    background:rgba(255,255,255,0.75);
+    backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,0.6);
+    border-radius:var(--radius-md);
+    padding:12px;
+    box-shadow:0 4px 14px rgba(43,27,18,0.06);
+    display:flex; flex-direction:column; gap:6px;
+    cursor:pointer; transition:.15s;
+  }
+  .menu-card:active{transform:scale(0.97);}
+  .menu-icon{
+    width:44px;height:44px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center; font-size:22px;
+    background:var(--green-soft);
+  }
+  .menu-icon.cold{background:#E4F2F7;}
+  .menu-icon.blend{background:var(--gold-soft);}
+  .menu-name{font-size:13.5px; font-weight:600; line-height:1.3;}
+  .menu-price{font-size:12.5px; color:var(--espresso-soft); font-weight:500;}
+  .menu-add{
+    margin-top:auto; align-self:flex-end;
+    font-size:12px; color:var(--green-deep); font-weight:600;
+    display:flex; align-items:center; gap:3px;
+  }
+
+  /* ---------- Chat log (signature element) ---------- */
+  .chatlog{margin-bottom:16px; display:flex; flex-direction:column; gap:8px;}
+  .chatlog-empty{
+    text-align:center; color:var(--espresso-soft); font-size:12.5px;
+    padding:18px 10px; background:rgba(255,255,255,0.5); border-radius:var(--radius-md);
+  }
+  .bubble-row{display:flex; flex-direction:column; align-items:flex-end;}
+  .bubble{
+    background:var(--line-user); color:#fff; padding:9px 13px; border-radius:16px 16px 4px 16px;
+    font-size:13px; max-width:82%; line-height:1.45; box-shadow:0 2px 6px rgba(6,199,85,0.25);
+  }
+  .bubble b{font-weight:700;}
+  .bubble-time{font-size:10px; color:var(--espresso-soft); margin-top:3px; margin-right:2px;}
+  .bubble-row.system{align-items:flex-start;}
+  .bubble-row.system .bubble{
+    background:#fff; color:var(--espresso); border-radius:16px 16px 16px 4px;
+    border:1px solid #e7e0d1;
+  }
+
+  /* ---------- Cart ---------- */
+  .cart-item{
+    display:flex; gap:10px; align-items:center; background:#fff; border-radius:var(--radius-md);
+    padding:10px 12px; margin-bottom:8px; border:1px solid #eee3cf;
+  }
+  .cart-item .ci-icon{width:34px;height:34px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .cart-item .ci-info{flex:1; min-width:0;}
+  .ci-name{font-size:13px; font-weight:600;}
+  .ci-meta{font-size:11.5px; color:var(--espresso-soft); margin-top:2px;}
+  .ci-price{font-size:13px; font-weight:600; color:var(--green-deep); flex-shrink:0;}
+  .ci-del{
+    background:none; border:none; color:var(--danger); font-size:18px; cursor:pointer; padding:4px 6px; flex-shrink:0;
+  }
+  .cart-empty{text-align:center; padding:40px 20px; color:var(--espresso-soft);}
+  .cart-empty .big{font-size:34px; margin-bottom:8px;}
+
+  .cart-summary-bar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 4px; margin-top:8px; border-top:1px dashed #c9bfa2; font-weight:600;
+  }
+  .btn{
+    display:block; width:100%; text-align:center; border:none; border-radius:100px;
+    padding:14px; font-size:14.5px; font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .btn-primary{background:var(--green-deep); color:#fff;}
+  .btn-primary:disabled{background:#b9c7bd; cursor:not-allowed;}
+  .btn-secondary{background:var(--gold-soft); color:var(--espresso); }
+  .btn-outline{background:#fff; color:var(--green-deep); border:1.5px solid var(--green-deep);}
+
+  /* ---------- Summary / receipt ---------- */
+  .subtabs{display:flex; gap:8px; margin-bottom:14px;}
+  .subtab{flex:1; text-align:center; padding:9px; border-radius:100px; font-size:12.5px; font-weight:600; background:#fff; border:1px solid #e2dcce; cursor:pointer; color:var(--espresso-soft);}
+  .subtab.active{background:var(--green-deep); color:#fff; border-color:var(--green-deep);}
+
+  .receipt-wrap{background:transparent; padding:6px 0 18px;}
+  .receipt{
+    background:#fffdf8; border-radius:14px; position:relative; overflow:hidden;
+    box-shadow:0 10px 28px rgba(43,27,18,0.14);
+  }
+  .receipt-top{background:var(--green-deep); color:#fff; padding:18px 20px 14px; position:relative;}
+  .receipt-top h3{margin:0; font-size:16px;}
+  .receipt-top .sub{font-size:11.5px; opacity:0.85; margin-top:4px;}
+  .receipt-perf{
+    height:14px; background:
+      radial-gradient(circle at 8px 0, transparent 7px, var(--green-deep) 7px) top/16px 14px repeat-x;
+    margin-top:-1px;
+  }
+  .receipt-body{padding:6px 20px 4px;}
+  .receipt-row{display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px dashed #e2d9c2; font-size:13px;}
+  .receipt-row:last-child{border-bottom:none;}
+  .rr-left{flex:1;}
+  .rr-name{font-weight:600;}
+  .rr-meta{font-size:11px; color:var(--espresso-soft); margin-top:2px;}
+  .rr-price{font-weight:600; white-space:nowrap;}
+  .receipt-total{
+    display:flex; justify-content:space-between; padding:14px 20px 18px; font-weight:700; font-size:15px;
+    background:var(--gold-soft); margin-top:6px;
+  }
+  .receipt-foot{text-align:center; font-size:10.5px; color:var(--espresso-soft); padding:10px 0 16px;}
+
+  .empty-state{text-align:center; padding:50px 20px; color:var(--espresso-soft);}
+  .empty-state .big{font-size:36px; margin-bottom:10px;}
+  .empty-state .t{font-weight:600; color:var(--espresso); margin-bottom:4px; font-size:14px;}
+
+  /* ---------- Bottom nav ---------- */
+  .bottomnav{
+    position:sticky; bottom:0; z-index:30;
+    display:flex; background:#fff; border-top:1px solid #e7e0d1;
+    box-shadow:0 -4px 14px rgba(0,0,0,0.05);
+  }
+  .navbtn{
+    flex:1; text-align:center; padding:10px 4px 8px; background:none; border:none; cursor:pointer;
+    color:var(--espresso-soft); font-family:inherit; position:relative;
+  }
+  .navbtn .icon{font-size:19px; display:block;}
+  .navbtn .lbl{font-size:10.5px; margin-top:2px; font-weight:500;}
+  .navbtn.active{color:var(--green-deep);}
+  .navbadge{
+    position:absolute; top:2px; right:calc(50% - 22px); background:var(--danger); color:#fff;
+    font-size:9.5px; min-width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; padding:0 3px;
+  }
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(11,20,15,0.45); z-index:100;
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal-sheet{
+    background:#fff; width:100%; max-width:520px; border-radius:22px 22px 0 0;
+    padding:20px 20px 22px; max-height:88vh; overflow-y:auto;
+    animation:slideup .22s ease-out;
+  }
+  @keyframes slideup{from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  .modal-head{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
+  .modal-icon{width:48px;height:48px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:24px;}
+  .modal-title{font-size:16px; font-weight:600;}
+  .modal-price{font-size:13px; color:var(--green-deep); font-weight:600; margin-top:2px;}
+  .field-label{font-size:12.5px; font-weight:600; margin:14px 0 6px; color:var(--espresso);}
+  .field-input{
+    width:100%; padding:12px 14px; border-radius:12px; border:1.5px solid #e2dcce;
+    font-size:14px; font-family:inherit; background:#faf8f2;
+  }
+  .field-input:focus{outline:none; border-color:var(--green-mid);}
+  .opt-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .opt-pill{
+    padding:8px 14px; border-radius:100px; border:1.5px solid #e2dcce; background:#fff;
+    font-size:12.5px; cursor:pointer; color:var(--espresso-soft); font-weight:500;
+  }
+  .opt-pill.sel{background:var(--green-deep); border-color:var(--green-deep); color:#fff;}
+  .modal-actions{display:flex; gap:10px; margin-top:20px;}
+
+  .toast{
+    position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+    background:var(--espresso); color:#fff; padding:10px 18px; border-radius:100px;
+    font-size:12.5px; z-index:200; opacity:0; pointer-events:none; transition:.25s;
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1; bottom:100px;}
+
+  .save-btn-row{display:flex; gap:10px; padding:0 14px 14px;}
+
+  ::-webkit-scrollbar{width:0; height:0;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Header -->
+  <div class="appbar">
+    <div class="appbar-row">
+      <div class="appbar-avatar">☕</div>
+      <div>
+        <div class="appbar-title">Café Amazon</div>
+        <div class="appbar-sub">สั่งกาแฟงานประชุม</div>
+      </div>
+      <div class="appbar-date" id="todayLabel">-</div>
+    </div>
+  </div>
+
+  <!-- ================= MENU VIEW ================= -->
+  <div class="view active" id="view-menu">
+    <div class="chips" id="catChips"></div>
+    <div id="menuContainer"></div>
+  </div>
+
+  <!-- ================= CART VIEW ================= -->
+  <div class="view" id="view-cart">
+    <div class="chatlog" id="chatlog"></div>
+    <div id="cartList"></div>
+    <div id="cartFooter"></div>
+  </div>
+
+  <!-- ================= SUMMARY VIEW ================= -->
+  <div class="view" id="view-summary">
+    <div class="subtabs">
+      <div class="subtab active" data-mode="byMenu">สรุปสั่งร้าน</div>
+      <div class="subtab" data-mode="byPerson">สรุปตามคนสั่ง</div>
+    </div>
+    <div id="summaryContent"></div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottomnav">
+    <button class="navbtn active" data-view="menu">
+      <span class="icon">☕</span><span class="lbl">สั่งเครื่องดื่ม</span>
+    </button>
+    <button class="navbtn" data-view="cart">
+      <span class="icon">🧾</span><span class="lbl">ตะกร้า</span>
+      <span class="navbadge" id="cartBadge" style="display:none;">0</span>
+    </button>
+    <button class="navbtn" data-view="summary">
+      <span class="icon">📋</span><span class="lbl">สรุปวันนี้</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- Order modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <div class="modal-icon" id="mIcon">☕</div>
+      <div>
+        <div class="modal-title" id="mName">-</div>
+        <div class="modal-price" id="mPrice">-</div>
+      </div>
+    </div>
+
+    <div class="field-label">ชื่อผู้สั่ง <span style="color:#C1503F">*</span></div>
+    <input type="text" class="field-input" id="mOrderer" placeholder="พิมพ์ชื่อผู้สั่ง เช่น ผบ.ร้อย, จ่าสมชาย">
+
+    <div class="field-label">ความหวาน</div>
+    <div class="opt-row" id="mSweet"></div>
+
+    <div class="field-label" id="mIceLabel">ระดับน้ำแข็ง</div>
+    <div class="opt-row" id="mIce"></div>
+
+    <div class="field-label">หมายเหตุ (ถ้ามี)</div>
+    <input type="text" class="field-input" id="mNote" placeholder="เช่น ใส่ครีมเทียมเพิ่ม">
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="mCancel">ยกเลิก</button>
+      <button class="btn btn-primary" id="mAdd">เพิ่มลงตะกร้า</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====================== CONFIG ====================== */
+// วาง URL ของ Google Apps Script Web App ที่ deploy แล้วตรงนี้
+const GAS_URL = "https://script.google.com/macros/s/XXXXXXXXXXXXXXXXXXXXXXXX/exec";
+
+/* ====================== MENU DATA ======================
+   ราคาโดยประมาณ ปรับแก้ได้ตามจริงของสาขา */
+const MENU = [
+  { cat:"กาแฟร้อน", icon:"☕", type:"hot", items:[
+    {name:"เอสเปรสโซ่", price:45},
+    {name:"อเมริกาโน่ร้อน", price:45},
+    {name:"ลาเต้ร้อน", price:50},
+    {name:"คาปูชิโน่ร้อน", price:50},
+    {name:"มอคค่าร้อน", price:55},
+  ]},
+  { cat:"กาแฟเย็น", icon:"🧊", type:"cold", items:[
+    {name:"อเมริกาโน่เย็น", price:50},
+    {name:"ลาเต้เย็น", price:55},
+    {name:"คาปูชิโน่เย็น", price:55},
+    {name:"มอคค่าเย็น", price:60},
+    {name:"คาราเมลมัคคิอาโต้เย็น", price:60},
+  ]},
+  { cat:"กาแฟปั่น", icon:"🥤", type:"blend", items:[
+    {name:"คาปูชิโน่ปั่น", price:65},
+    {name:"มอคค่าปั่น", price:65},
+    {name:"คาราเมลปั่น", price:65},
+  ]},
+  { cat:"ชา / โกโก้", icon:"🍵", type:"cold", items:[
+    {name:"ชาไทยเย็น", price:45},
+    {name:"ชาเขียวเย็น", price:45},
+    {name:"ชาเขียวปั่น", price:60, type:"blend"},
+    {name:"โกโก้เย็น", price:50},
+    {name:"โกโก้ปั่น", price:60, type:"blend"},
+  ]},
+  { cat:"เครื่องดื่มอื่นๆ", icon:"🍊", type:"cold", items:[
+    {name:"น้ำส้ม 100%", price:45},
+    {name:"น้ำผึ้งมะนาว", price:45},
+    {name:"สมูทตี้ผลไม้รวม", price:60, type:"blend"},
+  ]},
+];
+
+const SWEET_OPTS = ["หวานปกติ","หวานน้อย","ไม่หวาน","หวานมาก"];
+const ICE_OPTS = ["น้ำแข็งปกติ","น้ำแข็งน้อย","ไม่ใส่น้ำแข็ง"];
+
+/* ====================== STATE ====================== */
+let cart = [];          // ยังไม่ส่ง
+let chatEvents = [];    // สำหรับ chat log ฝั่งตะกร้า
+let todayOrders = [];   // ข้อมูลที่ส่งไปแล้ว (จาก sheet)
+let currentItem = null;
+let currentSelSweet = SWEET_OPTS[0];
+let currentSelIce = ICE_OPTS[0];
+
+/* ====================== THAI DATE ====================== */
+function thaiDateLabel(d){
+  const months = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+  const be = d.getFullYear() + 543;
+  return d.getDate() + " " + months[d.getMonth()] + " " + be;
+}
+document.getElementById('todayLabel').textContent = thaiDateLabel(new Date());
+
+/* ====================== RENDER MENU ====================== */
+const catChipsEl = document.getElementById('catChips');
+const menuContainerEl = document.getElementById('menuContainer');
+
+function iconClassFor(type){
+  if(type==="cold") return "cold";
+  if(type==="blend") return "blend";
+  return "";
+}
+
+function renderChips(){
+  catChipsEl.innerHTML = MENU.map((c,i)=>
+    `<div class="chip ${i===0?'active':''}" data-cat="${c.cat}">${c.icon} ${c.cat}</div>`
+  ).join('');
+  catChipsEl.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      const target = document.getElementById('sec-'+chip.dataset.cat);
+      if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+}
+
+function renderMenu(){
+  menuContainerEl.innerHTML = MENU.map(c=>`
+    <div id="sec-${c.cat}">
+      <div class="cat-heading">${c.icon} ${c.cat}</div>
+      <div class="menu-grid">
+        ${c.items.map(it=>{
+          const t = it.type || c.type;
+          return `<div class="menu-card" data-cat="${c.cat}" data-icon="${c.icon}" data-name="${it.name}" data-price="${it.price}" data-type="${t}">
+            <div class="menu-icon ${iconClassFor(t)}">${c.icon}</div>
+            <div class="menu-name">${it.name}</div>
+            <div class="menu-price">${it.price} บาท</div>
+            <div class="menu-add">+ เพิ่ม</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  menuContainerEl.querySelectorAll('.menu-card').forEach(card=>{
+    card.addEventListener('click', ()=>openModal({
+      cat: card.dataset.cat, icon: card.dataset.icon, name: card.dataset.name,
+      price: Number(card.dataset.price), type: card.dataset.type
+    }));
+  });
+}
+renderChips();
+renderMenu();
+
+/* ====================== MODAL ====================== */
+const modalBackdrop = document.getElementById('modalBackdrop');
+function openModal(item){
+  currentItem = item;
+  currentSelSweet = SWEET_OPTS[0];
+  currentSelIce = ICE_OPTS[0];
+  document.getElementById('mIcon').textContent = item.icon;
+  document.getElementById('mName').textContent = item.name;
+  document.getElementById('mPrice').textContent = item.price + " บาท";
+  document.getElementById('mOrderer').value = "";
+  document.getElementById('mNote').value = "";
+
+  document.getElementById('mSweet').innerHTML = SWEET_OPTS.map((s,i)=>
+    `<div class="opt-pill ${i===0?'sel':''}" data-val="${s}">${s}</div>`).join('');
+  document.querySelectorAll('#mSweet .opt-pill').forEach(p=>p.addEventListener('click',()=>{
+    document.querySelectorAll('#mSweet .opt-pill').forEach(x=>x.classList.remove('sel'));
+    p.classList.add('sel'); currentSelSweet = p.dataset.val;
+  }));
+
+  const showIce = item.type === "cold";
+  document.getElementById('mIceLabel').style.display = showIce ? 'block':'none';
+  document.getElementById('mIce').style.display = showIce ? 'flex':'none';
+  document.getElementById('mIce').innerHTML = ICE_OPTS.map((s,i)=>
+    `<div class="opt-pill ${i===0?'sel':''}" data-val="${s}">${s}</div>`).join('');
+  document.querySelectorAll('#mIce .opt-pill').forEach(p=>p.addEventListener('click',()=>{
+    document.querySelectorAll('#mIce .opt-pill').forEach(x=>x.classList.remove('sel'));
+    p.classList.add('sel'); currentSelIce = p.dataset.val;
+  }));
+
+  modalBackdrop.classList.add('open');
+  setTimeout(()=>document.getElementById('mOrderer').focus(), 200);
+}
+function closeModal(){ modalBackdrop.classList.remove('open'); currentItem=null; }
+document.getElementById('mCancel').addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', (e)=>{ if(e.target===modalBackdrop) closeModal(); });
+
+document.getElementById('mAdd').addEventListener('click', ()=>{
+  const orderer = document.getElementById('mOrderer').value.trim();
+  if(!orderer){
+    showToast("กรอกชื่อผู้สั่งก่อนนะ");
+    document.getElementById('mOrderer').focus();
+    return;
+  }
+  const note = document.getElementById('mNote').value.trim();
+  const entry = {
+    localId: 'c'+Date.now()+Math.random().toString(36).slice(2,7),
+    name: orderer, category: currentItem.cat, menu: currentItem.name,
+    icon: currentItem.icon, sweet: currentSelSweet,
+    ice: currentItem.type==="cold" ? currentSelIce : "-",
+    price: currentItem.price, note: note
+  };
+  cart.push(entry);
+  chatEvents.push({who:orderer, text: buildOrderText(entry), time: nowTimeLabel()});
+  renderCart();
+  updateCartBadge();
+  showToast(`เพิ่ม ${currentItem.name} ให้คุณ${orderer} แล้ว`);
+  closeModal();
+});
+
+function buildOrderText(e){
+  let parts = [`<b>${e.name}</b> สั่ง ${e.menu}`];
+  if(e.sweet) parts.push(e.sweet);
+  if(e.ice && e.ice!=="-") parts.push(e.ice);
+  if(e.note) parts.push('("' + e.note + '")');
+  return parts.join(' · ');
+}
+function nowTimeLabel(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+/* ====================== TOAST ====================== */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ====================== CART VIEW ====================== */
+function renderCart(){
+  const chatlogEl = document.getElementById('chatlog');
+  if(chatEvents.length===0){
+    chatlogEl.innerHTML = `<div class="chatlog-empty">ยังไม่มีรายการในตะกร้า เลือกเมนูจากแท็บ "สั่งเครื่องดื่ม" ได้เลย</div>`;
+  } else {
+    chatlogEl.innerHTML = chatEvents.map(ev=>`
+      <div class="bubble-row">
+        <div class="bubble">${ev.text}</div>
+        <div class="bubble-time">${ev.time}</div>
+      </div>
+    `).join('');
+  }
+
+  const listEl = document.getElementById('cartList');
+  const footEl = document.getElementById('cartFooter');
+  if(cart.length===0){
+    listEl.innerHTML = '';
+    footEl.innerHTML = '';
+    return;
+  }
+  listEl.innerHTML = cart.map(it=>`
+    <div class="cart-item" data-id="${it.localId}">
+      <div class="ci-icon">${it.icon}</div>
+      <div class="ci-info">
+        <div class="ci-name">${it.menu} — คุณ${it.name}</div>
+        <div class="ci-meta">${it.sweet}${it.ice!=='-'?(' · '+it.ice):''}${it.note?(' · '+it.note):''}</div>
+      </div>
+      <div class="ci-price">${it.price}฿</div>
+      <button class="ci-del" data-id="${it.localId}">✕</button>
+    </div>
+  `).join('');
+  listEl.querySelectorAll('.ci-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      cart = cart.filter(c=>c.localId !== btn.dataset.id);
+      renderCart(); updateCartBadge();
+    });
+  });
+
+  const total = cart.reduce((s,i)=>s+i.price,0);
+  footEl.innerHTML = `
+    <div class="cart-summary-bar"><span>รวม ${cart.length} แก้ว</span><span>${total} บาท</span></div>
+    <button class="btn btn-primary" id="submitCartBtn">ยืนยันสั่งซื้อ (${cart.length} แก้ว)</button>
+  `;
+  document.getElementById('submitCartBtn').addEventListener('click', submitCart);
+}
+
+function updateCartBadge(){
+  const badge = document.getElementById('cartBadge');
+  if(cart.length>0){ badge.style.display='flex'; badge.textContent = cart.length; }
+  else { badge.style.display='none'; }
+}
+
+async function submitCart(){
+  if(cart.length===0) return;
+  const btn = document.getElementById('submitCartBtn');
+  btn.disabled = true; btn.textContent = 'กำลังส่งคำสั่งซื้อ...';
+  try{
+    const res = await fetch(GAS_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'addItems', items: cart })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'unknown error');
+    showToast(`ส่งคำสั่งซื้อ ${cart.length} แก้วเรียบร้อย ✅`);
+    cart = []; chatEvents = [];
+    renderCart(); updateCartBadge();
+    await loadToday();
+    switchView('summary');
+  }catch(err){
+    showToast('ส่งคำสั่งซื้อไม่สำเร็จ ลองใหม่อีกครั้ง');
+    console.error(err);
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ====================== SUMMARY VIEW ====================== */
+let summaryMode = 'byMenu';
+document.querySelectorAll('.subtab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.subtab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    summaryMode = tab.dataset.mode;
+    renderSummary();
+  });
+});
+
+async function loadToday(){
+  try{
+    const res = await fetch(GAS_URL + '?action=getByDate');
+    const data = await res.json();
+    if(data.ok){ todayOrders = data.orders; }
+  }catch(err){ console.error(err); }
+  renderSummary();
+}
+
+function renderSummary(){
+  const el = document.getElementById('summaryContent');
+  if(todayOrders.length===0){
+    el.innerHTML = `<div class="empty-state">
+      <div class="big">📋</div>
+      <div class="t">ยังไม่มีคนสั่งเครื่องดื่มวันนี้</div>
+      <div>เริ่มสั่งได้จากแท็บ "สั่งเครื่องดื่ม"</div>
+    </div>`;
+    return;
+  }
+
+  const total = todayOrders.reduce((s,o)=>s+Number(o.price),0);
+  let rowsHtml = '';
+
+  if(summaryMode === 'byMenu'){
+    const groups = {};
+    todayOrders.forEach(o=>{
+      const key = [o.menu, o.sweet, o.ice].join('|');
+      if(!groups[key]) groups[key] = {menu:o.menu, sweet:o.sweet, ice:o.ice, qty:0, sum:0};
+      groups[key].qty++; groups[key].sum += Number(o.price);
+    });
+    rowsHtml = Object.values(groups).map(g=>`
+      <div class="receipt-row">
+        <div class="rr-left">
+          <div class="rr-name">${g.menu} × ${g.qty}</div>
+          <div class="rr-meta">${g.sweet}${g.ice!=='-'?(' · '+g.ice):''}</div>
+        </div>
+        <div class="rr-price">${g.sum}฿</div>
+      </div>
+    `).join('');
+  } else {
+    const groups = {};
+    todayOrders.forEach(o=>{
+      if(!groups[o.name]) groups[o.name] = {name:o.name, items:[], sum:0};
+      groups[o.name].items.push(o);
+      groups[o.name].sum += Number(o.price);
+    });
+    rowsHtml = Object.values(groups).map(g=>`
+      <div class="receipt-row">
+        <div class="rr-left">
+          <div class="rr-name">คุณ${g.name}</div>
+          <div class="rr-meta">${g.items.map(i=>i.menu+(i.sweet?' ('+i.sweet+')':'')).join(', ')}</div>
+        </div>
+        <div class="rr-price">${g.sum}฿</div>
+      </div>
+    `).join('');
+  }
+
+  el.innerHTML = `
+    <div class="receipt-wrap">
+      <div class="receipt" id="receiptCapture">
+        <div class="receipt-top">
+          <h3>☕ Café Amazon — สรุปวันนี้</h3>
+          <div class="sub">${thaiDateLabel(new Date())} · ${todayOrders.length} แก้ว</div>
+        </div>
+        <div class="receipt-perf"></div>
+        <div class="receipt-body">${rowsHtml}</div>
+        <div class="receipt-total"><span>รวมทั้งหมด</span><span>${total} บาท</span></div>
+        <div class="receipt-foot">ใช้รูปนี้อ้างอิงตอนสั่งที่ร้าน Café Amazon</div>
+      </div>
+    </div>
+    <div class="save-btn-row">
+      <button class="btn btn-secondary" id="refreshBtn">🔄 รีเฟรช</button>
+      <button class="btn btn-primary" id="saveImgBtn">📷 บันทึกเป็นรูปภาพ</button>
+    </div>
+  `;
+  document.getElementById('refreshBtn').addEventListener('click', loadToday);
+  document.getElementById('saveImgBtn').addEventListener('click', saveReceiptImage);
+}
+
+async function saveReceiptImage(){
+  const node = document.getElementById('receiptCapture');
+  showToast('กำลังสร้างรูปภาพ...');
+  try{
+    const canvas = await html2canvas(node, {scale:2, backgroundColor:'#fffdf8'});
+    const link = document.createElement('a');
+    const fname = 'coffee-order-' + new Date().toISOString().slice(0,10) + '.png';
+    link.download = fname;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('บันทึกรูปภาพแล้ว ✅');
+  }catch(err){
+    console.error(err);
+    showToast('บันทึกรูปไม่สำเร็จ');
+  }
+}
+
+/* ====================== NAV ====================== */
+function switchView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+  if(name==='summary') loadToday();
+}
+document.querySelectorAll('.navbtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>switchView(btn.dataset.view));
+});
+
+/* ====================== INIT ====================== */
+renderCart();
+updateCartBadge();
+loadToday();
+</script>
+</body>
+</html>
