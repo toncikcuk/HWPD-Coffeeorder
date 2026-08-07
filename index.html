@@ -369,15 +369,16 @@
     .chips{position:sticky; top:var(--header-h); margin:0 0 4px;}
 
     #view-cart{
-      display:flex !important; flex-direction:column;
-      grid-column:2; grid-row:1/4;
-      padding:20px 20px calc(20px + env(safe-area-inset-bottom));
-      background:#fff;
-      border-left:1px solid var(--paper-2);
-      position:sticky; top:var(--header-h); align-self:start;
-      height:calc(100vh - var(--header-h) - 64px); overflow-y:auto;
-      border-radius:0 0 var(--radius-lg) 0;
-    }
+  display:flex !important; flex-direction:column;
+  grid-column:2; grid-row:2/4;              /* ⬅️ เปลี่ยนจาก 1/4 เป็น 2/4 */
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+  background:#fff;
+  border-left:1px solid var(--paper-2);
+  position:sticky; top:0; align-self:start;  /* ⬅️ top:0 ได้แล้ว เพราะไม่ได้อยู่แถว 1 อีกต่อไป */
+  height:calc(100vh - var(--header-h));       /* ⬅️ ลบแค่ความสูง appbar พอ (ไม่ต้องลบ 64px แล้ว) */
+  overflow-y:auto;
+  border-radius:0 0 var(--radius-lg) 0;
+}
   }
   @media(min-width:1400px){
     .menu-grid{grid-template-columns:repeat(4,1fr);}
