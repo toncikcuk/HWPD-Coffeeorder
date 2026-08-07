@@ -374,8 +374,8 @@
       padding:20px 20px calc(20px + env(safe-area-inset-bottom));
       background:#fff;
       border-left:1px solid var(--paper-2);
-      position:sticky; top:0; align-self:start;
-      height:100%; overflow-y:auto;
+      position:sticky; top:var(--header-h); align-self:start;
+      height:calc(100vh - var(--header-h) - 64px); overflow-y:auto;
       border-radius:0 0 var(--radius-lg) 0;
     }
   }
