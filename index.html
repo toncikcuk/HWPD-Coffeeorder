@@ -349,6 +349,30 @@
   .opt-pill.sel{background:var(--forest); border-color:var(--forest); color:#fff;}
   .modal-actions{display:flex; gap:10px; margin-top:20px;}
 
+  /* ---------- Quantity stepper (modal) ---------- */
+  .qty-stepper{
+    display:flex; align-items:center; gap:14px; background:#fbf7ec;
+    border:1.5px solid var(--paper-2); border-radius:100px; padding:6px 8px; width:fit-content;
+  }
+  .qty-btn{
+    width:34px; height:34px; border-radius:50%; border:none; cursor:pointer;
+    background:var(--forest); color:#fff; font-size:17px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; transition:.15s var(--ease-ios);
+  }
+  .qty-btn:active{transform:scale(0.9);}
+  .qty-btn.dec{background:#fff; color:var(--forest); border:1.5px solid var(--forest);}
+  .qty-val{min-width:30px; text-align:center; font-size:16px; font-weight:700; font-family:'IBM Plex Mono',monospace; color:var(--ink);}
+
+  /* ---------- Quantity stepper (cart item, compact) ---------- */
+  .ci-qty{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+  .ci-qty-btn{
+    width:24px; height:24px; border-radius:50%; border:1.5px solid var(--paper-2); background:#fff;
+    color:var(--forest); font-size:14px; font-weight:700; cursor:pointer; line-height:1;
+    display:flex; align-items:center; justify-content:center; transition:.15s var(--ease-ios); flex-shrink:0;
+  }
+  .ci-qty-btn:active{transform:scale(0.88);}
+  .ci-qty-val{min-width:16px; text-align:center; font-size:12.5px; font-weight:700; font-family:'IBM Plex Mono',monospace;}
+
   .toast{
     position:fixed; bottom:calc(64px + 42px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
     background:var(--ink); color:#fff; padding:10px 18px; border-radius:100px;
@@ -478,6 +502,13 @@
     <div class="field-label">ชื่อผู้สั่ง <span style="color:#9C4426">*</span></div>
     <input type="text" class="field-input" id="mOrderer" placeholder="พิมพ์ชื่อผู้สั่ง เช่น ส.ต.อ.ฉัตรชัย">
 
+    <div class="field-label">จำนวน (แก้ว)</div>
+    <div class="qty-stepper">
+      <button type="button" class="qty-btn dec" id="mQtyDec">−</button>
+      <span class="qty-val" id="mQtyVal">1</span>
+      <button type="button" class="qty-btn" id="mQtyInc">+</button>
+    </div>
+
     <div class="field-label">ความหวาน</div>
     <div class="opt-row" id="mSweet"></div>
 
@@ -557,6 +588,8 @@ let todayOrders = [];   // ข้อมูลที่ส่งไปแล้�
 let currentItem = null;
 let currentSelSweet = SWEET_OPTS[0];
 let currentSelIce = ICE_OPTS[0];
+let currentQty = 1;
+const MAX_QTY = 20;
 let suppressScrollSpy = false;
 
 /* ====================== THAI DATE ====================== */
@@ -677,11 +710,13 @@ function openModal(item){
   currentItem = item;
   currentSelSweet = SWEET_OPTS[0];
   currentSelIce = ICE_OPTS[0];
+  currentQty = 1;
   document.getElementById('mIcon').textContent = item.icon;
   document.getElementById('mName').textContent = item.name;
   document.getElementById('mPrice').textContent = item.price + " บาท";
   document.getElementById('mOrderer').value = "";
   document.getElementById('mNote').value = "";
+  document.getElementById('mQtyVal').textContent = currentQty;
 
   document.getElementById('mSweet').innerHTML = SWEET_OPTS.map((s,i)=>
     `<div class="opt-pill ${i===0?'sel':''}" data-val="${s}">${s}</div>`).join('');
@@ -707,6 +742,17 @@ function closeModal(){ modalBackdrop.classList.remove('open'); currentItem=null;
 document.getElementById('mCancel').addEventListener('click', closeModal);
 modalBackdrop.addEventListener('click', (e)=>{ if(e.target===modalBackdrop) closeModal(); });
 
+document.getElementById('mQtyDec').addEventListener('click', ()=>{
+  if(currentQty <= 1) return;
+  currentQty--;
+  document.getElementById('mQtyVal').textContent = currentQty;
+});
+document.getElementById('mQtyInc').addEventListener('click', ()=>{
+  if(currentQty >= MAX_QTY) return;
+  currentQty++;
+  document.getElementById('mQtyVal').textContent = currentQty;
+});
+
 document.getElementById('mAdd').addEventListener('click', ()=>{
   const orderer = document.getElementById('mOrderer').value.trim();
   if(!orderer){
@@ -715,12 +761,13 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
     return;
   }
   const note = document.getElementById('mNote').value.trim();
+  const qty = currentQty;
   const localId = 'c'+Date.now()+Math.random().toString(36).slice(2,7);
   const entry = {
     localId, name: orderer, category: currentItem.cat, menu: currentItem.name,
     icon: currentItem.icon, sweet: currentSelSweet,
     ice: currentItem.type==="cold" ? currentSelIce : "-",
-    price: currentItem.price, note: note
+    price: currentItem.price, note: note, qty: qty
   };
   cart.push(entry);
   // ผูกตั๋ว/ข้อความเข้ากับ localId เดียวกับรายการในตะกร้า
@@ -728,16 +775,22 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
   chatEvents.push({localId, who:orderer, text: buildOrderText(entry), time: nowTimeLabel()});
   renderCart();
   updateCartBadge();
-  showToast(`เพิ่ม ${currentItem.name} ให้คุณ${orderer} แล้ว`);
+  showToast(`เพิ่ม ${currentItem.name}${qty>1?(' x'+qty):''} ให้คุณ${orderer} แล้ว`);
   closeModal();
 });
 
 function buildOrderText(e){
-  let parts = [`<b>${e.name}</b> สั่ง ${e.menu}`];
+  const qtyTxt = (e.qty && e.qty>1) ? ` x${e.qty}` : '';
+  let parts = [`<b>${e.name}</b> สั่ง ${e.menu}${qtyTxt}`];
   if(e.sweet) parts.push(e.sweet);
   if(e.ice && e.ice!=="-") parts.push(e.ice);
   if(e.note) parts.push('("' + e.note + '")');
   return parts.join(' · ');
+}
+function updateChatTextFor(localId){
+  const it = cart.find(c=>c.localId===localId);
+  const ev = chatEvents.find(c=>c.localId===localId);
+  if(it && ev){ ev.text = buildOrderText(it); }
 }
 function nowTimeLabel(){
   const d = new Date();
@@ -755,10 +808,15 @@ function showToast(msg){
 }
 
 /* ====================== CART VIEW ====================== */
+function cartTotalQty(){
+  return cart.reduce((s,i)=>s+(i.qty||1),0);
+}
+
 function renderCart(){
   const chatlogEl = document.getElementById('chatlog');
   const countLbl = document.getElementById('cartCountLbl');
-  countLbl.textContent = cart.length > 0 ? cart.length + ' รายการ' : '';
+  const totalQty = cartTotalQty();
+  countLbl.textContent = totalQty > 0 ? totalQty + ' แก้ว' : '';
 
   if(chatEvents.length===0){
     chatlogEl.innerHTML = `<div class="chatlog-empty">ยังไม่มีตั๋วในตะกร้า เลือกเมนูจากแท็บ "สั่งเครื่องดื่ม" ได้เลย</div>`;
@@ -778,17 +836,48 @@ function renderCart(){
     footEl.innerHTML = '';
     return;
   }
-  listEl.innerHTML = cart.map(it=>`
+  listEl.innerHTML = cart.map(it=>{
+    const q = it.qty || 1;
+    return `
     <div class="cart-item" data-id="${it.localId}">
       <div class="ci-icon">${it.icon}</div>
       <div class="ci-info">
         <div class="ci-name">${it.menu} — คุณ${it.name}</div>
         <div class="ci-meta">${it.sweet}${it.ice!=='-'?(' · '+it.ice):''}${it.note?(' · '+it.note):''}</div>
       </div>
-      <div class="ci-price num">${it.price}฿</div>
+      <div class="ci-qty">
+        <button class="ci-qty-btn" data-act="dec" data-id="${it.localId}">−</button>
+        <span class="ci-qty-val">${q}</span>
+        <button class="ci-qty-btn" data-act="inc" data-id="${it.localId}">+</button>
+      </div>
+      <div class="ci-price num">${it.price*q}฿</div>
       <button class="ci-del" data-id="${it.localId}">✕</button>
     </div>
-  `).join('');
+  `;
+  }).join('');
+  listEl.querySelectorAll('.ci-qty-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.id;
+      const it = cart.find(c=>c.localId===id);
+      if(!it) return;
+      const cur = it.qty || 1;
+      if(btn.dataset.act === 'inc'){
+        if(cur >= MAX_QTY) return;
+        it.qty = cur + 1;
+      } else {
+        if(cur <= 1){
+          // ลดจาก 1 แก้ว = เอารายการนี้ออกจากตะกร้าเลย
+          cart = cart.filter(c=>c.localId !== id);
+          chatEvents = chatEvents.filter(ev=>ev.localId !== id);
+          renderCart(); updateCartBadge();
+          return;
+        }
+        it.qty = cur - 1;
+      }
+      updateChatTextFor(id);
+      renderCart(); updateCartBadge();
+    });
+  });
   listEl.querySelectorAll('.ci-del').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const id = btn.dataset.id;
@@ -799,33 +888,53 @@ function renderCart(){
     });
   });
 
-  const total = cart.reduce((s,i)=>s+i.price,0);
+  const total = cart.reduce((s,i)=>s+i.price*(i.qty||1),0);
+  const totalQtyNow = cartTotalQty();
   footEl.innerHTML = `
-    <div class="cart-summary-bar"><span>รวม ${cart.length} แก้ว</span><span class="num">${total} บาท</span></div>
-    <button class="btn btn-primary" id="submitCartBtn">ยืนยันสั่งซื้อ (${cart.length} แก้ว)</button>
+    <div class="cart-summary-bar"><span>รวม ${totalQtyNow} แก้ว</span><span class="num">${total} บาท</span></div>
+    <button class="btn btn-primary" id="submitCartBtn">ยืนยันสั่งซื้อ (${totalQtyNow} แก้ว)</button>
   `;
   document.getElementById('submitCartBtn').addEventListener('click', submitCart);
 }
 
 function updateCartBadge(){
   const badge = document.getElementById('cartBadge');
-  if(cart.length>0){ badge.style.display='flex'; badge.textContent = cart.length; }
+  const totalQty = cartTotalQty();
+  if(totalQty>0){ badge.style.display='flex'; badge.textContent = totalQty; }
   else { badge.style.display='none'; }
+}
+
+function expandCartForBackend(){
+  // แตกรายการที่มี qty > 1 ให้เป็นหนึ่งแถวต่อหนึ่งแก้ว
+  // เพื่อให้รูปแบบข้อมูลที่ส่งไป backend เหมือนเดิมทุกประการ (ไม่ต้องแก้ฝั่ง GAS)
+  const rows = [];
+  cart.forEach(it=>{
+    const q = it.qty || 1;
+    for(let i=0;i<q;i++){
+      rows.push({
+        localId: it.localId + '-' + i,
+        name: it.name, category: it.category, menu: it.menu,
+        icon: it.icon, sweet: it.sweet, ice: it.ice, price: it.price, note: it.note
+      });
+    }
+  });
+  return rows;
 }
 
 async function submitCart(){
   if(cart.length===0) return;
   const btn = document.getElementById('submitCartBtn');
+  const rows = expandCartForBackend();
   btn.disabled = true; btn.textContent = 'กำลังส่งคำสั่งซื้อ...';
   try{
     const res = await fetch(GAS_URL, {
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ action:'addItems', items: cart })
+      body: JSON.stringify({ action:'addItems', items: rows })
     });
     const data = await res.json();
     if(!data.ok) throw new Error(data.error || 'unknown error');
-    showToast(`ส่งคำสั่งซื้อ ${cart.length} แก้วเรียบร้อย ✅`);
+    showToast(`ส่งคำสั่งซื้อ ${rows.length} แก้วเรียบร้อย ✅`);
     cart = []; chatEvents = [];
     renderCart(); updateCartBadge();
     await loadToday();
