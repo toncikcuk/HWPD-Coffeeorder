@@ -126,32 +126,26 @@
   .view{display:none; padding:0 14px 14px; padding-bottom:calc(64px + 56px); flex:1;}
   .view.active{display:block;}
 
-  /* ---------- Category hero card (real drink photography) ---------- */
+  /* ---------- Category banner (no photo — clean label bar) ---------- */
   .cat-banner{
     position:relative; border-radius:20px; overflow:hidden;
-    margin:22px 0 14px; box-shadow:0 8px 20px rgba(36,26,18,0.13);
-    background:var(--card); border:1px solid rgba(203,181,135,0.5);
+    margin:22px 0 14px; box-shadow:var(--shadow-card);
+    background:linear-gradient(135deg,var(--forest-tint),#F1F6EF);
+    border:1px solid rgba(203,181,135,0.5);
   }
   .cat-banner:first-of-type{margin-top:16px;}
-  .cat-banner-photo{position:relative; height:148px; overflow:hidden;}
-  .cat-banner-photo img{width:100%; height:100%; object-fit:cover; object-position:center 58%; display:block; filter:saturate(1.06) contrast(1.02);}
-  .cat-banner-photo::after{
-    content:""; position:absolute; inset:0;
-    background:linear-gradient(180deg, rgba(13,51,35,0) 62%, rgba(13,51,35,0.28) 100%);
-  }
   .cat-banner-label{
-    display:flex; align-items:center; gap:11px; padding:13px 16px;
-    border-top:1px dashed var(--line-dash);
+    display:flex; align-items:center; gap:11px; padding:15px 16px;
   }
   .cat-banner-label .icon-badge{
-    width:36px; height:36px; border-radius:50%; flex-shrink:0;
-    background:linear-gradient(160deg,var(--forest-tint),#DCEBDD);
-    display:flex; align-items:center; justify-content:center; font-size:17px;
-    box-shadow:inset 0 0 0 1px rgba(13,51,35,0.1);
+    width:40px; height:40px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(160deg,#fff,var(--forest-tint));
+    display:flex; align-items:center; justify-content:center; font-size:19px;
+    box-shadow:inset 0 0 0 1px rgba(13,51,35,0.12), 0 2px 6px rgba(13,51,35,0.08);
   }
   .cat-banner-label .eyebrow{
     font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
-    color:#8a7c65;
+    color:#6f7e6d;
   }
   .cat-banner-label h2{margin:1px 0 0; font-size:16px; font-weight:700; font-family:'Prompt',sans-serif; color:var(--forest);}
 
@@ -408,7 +402,6 @@
     .appbar-title{font-size:19px;}
 
     .view{grid-column:1; grid-row:3; padding:26px 28px 120px; border-radius:0 0 0 var(--radius-lg);}
-    .cat-banner-photo{height:190px;}
     .menu-grid{grid-template-columns:repeat(3,1fr); gap:16px;}
     .chips{position:sticky; top:var(--header-h); margin:0 0 4px;}
 
@@ -505,7 +498,7 @@
     </div>
 
     <div class="field-label">ชื่อผู้สั่ง <span style="color:#9C4426">*</span></div>
-    <input type="text" class="field-input" id="mOrderer" placeholder="พิมพ์ชื่อผู้สั่ง เช่น ส.ต.อ.ฉัตรชัย,เติ้ก">
+    <input type="text" class="field-input" id="mOrderer" placeholder="พิมพ์ชื่อผู้สั่ง เช่น ส.ต.อ.ฉัตรชัย">
 
     <div class="field-label">จำนวน (แก้ว)</div>
     <div class="qty-stepper">
@@ -536,17 +529,6 @@
 /* ====================== CONFIG ====================== */
 // วาง URL ของ Google Apps Script Web App ที่ deploy แล้วตรงนี้
 const GAS_URL = "https://script.google.com/macros/s/AKfycbybVsRQyto-dZSDVl5UBOWpfJxYZViM_JXYyj3_qxl7L-MJC--2TduI3IL0TdrrAivBew/exec";
-
-/* ====================== CATEGORY PHOTOS ======================
-   ภาพเครื่องดื่มจริง (Unsplash, ใช้งานได้ฟรี) — แปะไว้ที่ด้านบนของแต่ละหมวดหมู่
-   อยากเปลี่ยนภาพ แค่แก้ลิงก์ตรงนี้ได้เลย ไม่ต้องแก้โค้ดส่วนอื่น */
-const CATEGORY_IMAGES = {
-  "กาแฟร้อน":   "https://images.unsplash.com/photo-1659882617003-4a0c077e2768?auto=format&fit=crop&w=900&q=80",
-  "กาแฟเย็น":   "https://images.unsplash.com/photo-1527156231393-7023794f363c?auto=format&fit=crop&w=900&q=80",
-  "กาแฟปั่น":   "https://images.unsplash.com/photo-1527156231393-7023794f363c?auto=format&fit=crop&w=900&q=80",
-  "ชา / โกโก้": "https://images.unsplash.com/photo-1773753631276-730d89af5978?auto=format&fit=crop&w=900&q=80",
-  "เครื่องดื่มอื่นๆ": "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=900&q=80",
-};
 
 /* ====================== MENU DATA ====================== */
 const MENU = [
@@ -649,10 +631,8 @@ function renderChips(){
 
 function renderMenu(){
   menuContainerEl.innerHTML = MENU.map(c=>{
-    const photo = CATEGORY_IMAGES[c.cat];
-    const banner = photo ? `
+    const banner = `
       <div class="cat-banner">
-        <div class="cat-banner-photo"><img src="${photo}" alt="${c.cat}" loading="lazy"></div>
         <div class="cat-banner-label">
           <div class="icon-badge">${c.icon}</div>
           <div>
@@ -660,7 +640,7 @@ function renderMenu(){
             <h2>${c.cat}</h2>
           </div>
         </div>
-      </div>` : `<div class="cat-heading">${c.icon} ${c.cat}</div>`;
+      </div>`;
     return `
     <div id="sec-${c.cat}">
       ${banner}
