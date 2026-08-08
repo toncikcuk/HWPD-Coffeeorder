@@ -377,10 +377,9 @@
   .op-close:active{transform:scale(0.88);}
   .op-qty{
     position:absolute; right:14px; bottom:14px; z-index:5;
-    display:flex; flex-direction:row; align-items:center; gap:9px;
-    background:rgba(18,43,56,0.55); border-radius:100px; padding:6px 8px;
-    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-    box-shadow:0 8px 18px rgba(0,0,0,0.25);
+    display:flex; flex-direction:column; align-items:center; gap:7px;
+    background:linear-gradient(160deg,var(--coral),var(--coral-deep)); border-radius:100px; padding:9px 7px;
+    box-shadow:0 8px 18px rgba(201,79,39,0.42);
   }
   .op-qty button{
     width:25px; height:25px; border-radius:50%; border:none; background:rgba(255,255,255,0.94); color:var(--coral-deep);
@@ -402,16 +401,7 @@
   }
   .op-size-pill.sel{background:var(--coral); border-color:var(--coral); color:#fff; box-shadow:0 8px 16px rgba(234,108,66,0.32);}
 
-  .op-cz-row{display:flex; gap:9px;}
-  .op-cz-card{
-    flex:1; background:var(--sky-tint); border-radius:16px; padding:11px 6px; text-align:center; cursor:pointer;
-    border:1.5px solid transparent; transition:.18s var(--ease);
-  }
-  .op-cz-card:active{transform:scale(0.96);}
-  .op-cz-card.cz-off{opacity:0.4; pointer-events:none;}
-  .op-cz-icon{font-size:18px;}
-  .op-cz-label{font-size:9.5px; color:var(--muted); margin-top:5px; font-weight:600;}
-  .op-cz-value{font-size:11.5px; font-weight:700; color:var(--navy-1); margin-top:1px;}
+
 
   .op-footer{
     display:flex; align-items:center; gap:12px; padding:14px 20px calc(14px + env(safe-area-inset-bottom));
@@ -575,9 +565,9 @@
       </div>
       <button type="button" class="op-close" id="mClose" aria-label="ปิดหน้าต่าง">✕</button>
       <div class="op-qty">
-        <button type="button" id="mQtyDec" aria-label="ลดจำนวน">−</button>
-        <span class="op-qty-val" id="mQtyVal">1</span>
         <button type="button" id="mQtyInc" aria-label="เพิ่มจำนวน">+</button>
+        <span class="op-qty-val" id="mQtyVal">1</span>
+        <button type="button" id="mQtyDec" aria-label="ลดจำนวน">−</button>
       </div>
     </div>
 
@@ -590,20 +580,8 @@
       <div class="op-size-row" id="mType" style="display:none;"></div>
 
       <!-- ปรับแต่งเครื่องดื่ม: กดที่การ์ดเพื่อวนเปลี่ยนตัวเลือก (แทนที่แถวปุ่มยาวแบบเดิม) -->
-      <div class="op-section-label" style="margin-bottom:2px;">ปรับแต่งเครื่องดื่ม</div>
-      <div class="op-cz-hint">(คลิกที่ปุ่มเพื่อปรับแต่ง)</div>
-      <div class="op-cz-row">
-        <div class="op-cz-card" id="mSweetCard">
-          <div class="op-cz-icon">🍯</div>
-          <div class="op-cz-label">ความหวาน</div>
-          <div class="op-cz-value" id="mSweetVal">-</div>
-        </div>
-        <div class="op-cz-card" id="mIceCard">
-          <div class="op-cz-icon">🧊</div>
-          <div class="op-cz-label">น้ำแข็ง</div>
-          <div class="op-cz-value" id="mIceVal">-</div>
-        </div>
-      </div>
+      <div class="op-section-label">ความหวาน</div>
+      <div class="op-size-row" id="mSweet"></div>
 
       <div class="field-label">ชื่อผู้สั่ง <span style="color:var(--coral-deep)">*</span></div>
       <input type="text" class="field-input" id="mOrderer" placeholder="พิมพ์ชื่อผู้สั่ง เช่น ส.ต.อ.ฉัตรชัย">
@@ -636,7 +614,6 @@ let menuLoaded = false;
 let menuLoadFailed = false;
 
 const SWEET_OPTS = ["หวานปกติ (100%)","หวานน้อย (50%)","หวานน้อยมาก (25%)","ไม่หวาน (0%)"];
-const ICE_OPTS = ["น้ำแข็งปกติ","น้ำแข็งน้อย","ไม่ใส่น้ำแข็ง"];
 // ป้ายภาษาไทยของแต่ละชนิด ใช้แสดงบนปุ่มเลือกในหน้าต่างสั่ง และในตะกร้า/ข้อความตั๋ว
 const TYPE_LABELS = { hot: "ร้อน", cold: "เย็น", blend: "ปั่น" };
 
@@ -646,7 +623,6 @@ let chatEvents = [];    // ตั๋ว/ข้อความในตะกร�
 let todayOrders = [];   // ข้อมูลที่ส่งไปแล้ว (จาก sheet)
 let currentItem = null;
 let currentSelSweet = SWEET_OPTS[0];
-let currentSelIce = ICE_OPTS[0];
 let currentSelType = "hot";   // ชนิดที่กำลังเลือกอยู่ในหน้าต่างสั่ง (hot/cold/blend)
 let currentQty = 1;
 const MAX_QTY = 20;
@@ -813,9 +789,6 @@ function setupScrollSpy(){
 
 /* ====================== MODAL ====================== */
 const modalBackdrop = document.getElementById('modalBackdrop');
-let sweetIdx = 0;   // ตำแหน่งปัจจุบันใน SWEET_OPTS ที่การ์ด "ความหวาน" กำลังแสดง
-let iceIdx = 0;     // ตำแหน่งปัจจุบันใน ICE_OPTS ที่การ์ด "น้ำแข็ง" กำลังแสดง
-
 // ราคาต่อแก้วตามชนิดที่เลือกอยู่ตอนนี้
 function currentUnitPrice(){
   if(!currentItem) return 0;
@@ -829,36 +802,20 @@ function updateTotalDisplay(){
   document.getElementById('mTotal').textContent = (unit * currentQty) + ' บาท';
 }
 
-// การ์ด "น้ำแข็ง" กดใช้ได้เฉพาะตอนเลือกชนิด "เย็น" เท่านั้น — ชนิดอื่นจะจางลงและกดไม่ได้
-function updateIceVisibility(){
-  const showIce = currentSelType === "cold";
-  document.getElementById('mIceCard').classList.toggle('cz-off', !showIce);
-  renderIceCard();
+// ปุ่มเลือกความหวาน ใช้สไตล์เดียวกับปุ่มเลือกชนิด (แถวปุ่มเม็ดยา กดเลือกตรง ๆ)
+function renderSweetRow(){
+  document.getElementById('mSweet').innerHTML = SWEET_OPTS.map((s,i)=>
+    `<div class="op-size-pill ${s===currentSelSweet?'sel':''}" data-val="${s}">${s}</div>`).join('');
+  document.querySelectorAll('#mSweet .op-size-pill').forEach(p=>p.addEventListener('click', ()=>{
+    document.querySelectorAll('#mSweet .op-size-pill').forEach(x=>x.classList.remove('sel'));
+    p.classList.add('sel');
+    currentSelSweet = p.dataset.val;
+  }));
 }
-
-function renderSweetCard(){
-  currentSelSweet = SWEET_OPTS[sweetIdx];
-  document.getElementById('mSweetVal').textContent = currentSelSweet;
-}
-function renderIceCard(){
-  currentSelIce = ICE_OPTS[iceIdx];
-  document.getElementById('mIceVal').textContent = currentSelType === "cold" ? currentSelIce : '-';
-}
-
-// แตะที่การ์ดเพื่อวนไปตัวเลือกถัดไป (แทนแถวปุ่มยาวแบบเดิม)
-document.getElementById('mSweetCard').addEventListener('click', ()=>{
-  sweetIdx = (sweetIdx + 1) % SWEET_OPTS.length;
-  renderSweetCard();
-});
-document.getElementById('mIceCard').addEventListener('click', ()=>{
-  if(currentSelType !== 'cold') return;
-  iceIdx = (iceIdx + 1) % ICE_OPTS.length;
-  renderIceCard();
-});
 
 function openModal(item){
   currentItem = item;
-  sweetIdx = 0; iceIdx = 0;
+  currentSelSweet = SWEET_OPTS[0];
   currentQty = 1;
   const types = item.types && item.types.length ? item.types : ['hot'];
   currentSelType = types[0];
@@ -869,7 +826,6 @@ function openModal(item){
   document.getElementById('mOrderer').value = "";
   document.getElementById('mNote').value = "";
   document.getElementById('mQtyVal').textContent = currentQty;
-  renderSweetCard();
 
   // ปุ่มเลือกชนิด (ร้อน/เย็น/ปั่น) — โชว์เฉพาะเมนูที่มีให้เลือกมากกว่า 1 ชนิด
   const showType = types.length > 1;
@@ -882,12 +838,11 @@ function openModal(item){
       document.querySelectorAll('#mType .op-size-pill').forEach(x=>x.classList.remove('sel'));
       p.classList.add('sel');
       currentSelType = p.dataset.val;
-      updateIceVisibility();
       updateTotalDisplay();
     }));
   }
 
-  updateIceVisibility();
+  renderSweetRow();
   updateTotalDisplay();
 
   modalBackdrop.classList.add('open');
@@ -927,7 +882,6 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
     localId, name: orderer, category: currentItem.cat, menu: currentItem.name,
     icon: currentItem.icon, image: currentItem.image, sweet: currentSelSweet,
     type: currentSelType, typeLabel: TYPE_LABELS[currentSelType] || currentSelType,
-    ice: currentSelType==="cold" ? currentSelIce : "-",
     price: finalPrice, note: note, qty: qty
   };
   cart.push(entry);
@@ -945,7 +899,6 @@ function buildOrderText(e){
   let parts = [`<b>${e.name}</b> สั่ง ${e.menu}${qtyTxt}`];
   if(e.typeLabel) parts.push(e.typeLabel);
   if(e.sweet) parts.push(e.sweet);
-  if(e.ice && e.ice!=="-") parts.push(e.ice);
   if(e.note) parts.push('("' + e.note + '")');
   return parts.join(' · ');
 }
@@ -1004,7 +957,6 @@ function renderCart(){
     const metaParts = [];
     if(it.typeLabel) metaParts.push(it.typeLabel);
     metaParts.push(it.sweet);
-    if(it.ice!=='-') metaParts.push(it.ice);
     if(it.note) metaParts.push(it.note);
     return `
     <div class="cart-item" data-id="${it.localId}">
@@ -1082,7 +1034,7 @@ function expandCartForBackend(){
       rows.push({
         localId: it.localId + '-' + i,
         name: it.name, category: it.category, menu: it.menu,
-        icon: it.icon, type: it.type, sweet: it.sweet, ice: it.ice, price: it.price, note: it.note
+        icon: it.icon, type: it.type, sweet: it.sweet, price: it.price, note: it.note
       });
     }
   });
@@ -1152,15 +1104,15 @@ function renderSummary(){
   if(summaryMode === 'byMenu'){
     const groups = {};
     todayOrders.forEach(o=>{
-      const key = [o.menu, o.type, o.sweet, o.ice].join('|');
-      if(!groups[key]) groups[key] = {menu:o.menu, type:o.type, sweet:o.sweet, ice:o.ice, qty:0, sum:0};
+      const key = [o.menu, o.type, o.sweet].join('|');
+      if(!groups[key]) groups[key] = {menu:o.menu, type:o.type, sweet:o.sweet, qty:0, sum:0};
       groups[key].qty++; groups[key].sum += Number(o.price);
     });
     rowsHtml = Object.values(groups).map(g=>`
       <div class="receipt-row">
         <div class="rr-left">
           <div class="rr-name">${g.menu}${g.type?(' ('+g.type+')'):''} × ${g.qty}</div>
-          <div class="rr-meta">${g.sweet}${g.ice!=='-'?(' · '+g.ice):''}</div>
+          <div class="rr-meta">${g.sweet}</div>
         </div>
         <div class="rr-price">${g.sum}฿</div>
       </div>
@@ -1287,15 +1239,15 @@ function renderHistoryReceipt(date, orders){
   const total = orders.reduce((s,o)=>s+Number(o.price),0);
   const groups = {};
   orders.forEach(o=>{
-    const key = [o.menu, o.type, o.sweet, o.ice].join('|');
-    if(!groups[key]) groups[key] = {menu:o.menu, type:o.type, sweet:o.sweet, ice:o.ice, qty:0, sum:0};
+    const key = [o.menu, o.type, o.sweet].join('|');
+    if(!groups[key]) groups[key] = {menu:o.menu, type:o.type, sweet:o.sweet, qty:0, sum:0};
     groups[key].qty++; groups[key].sum += Number(o.price);
   });
   const rowsHtml = Object.values(groups).map(g=>`
     <div class="receipt-row">
       <div class="rr-left">
         <div class="rr-name">${g.menu}${g.type?(' ('+g.type+')'):''} × ${g.qty}</div>
-        <div class="rr-meta">${g.sweet}${g.ice!=='-'?(' · '+g.ice):''}</div>
+        <div class="rr-meta">${g.sweet}</div>
       </div>
       <div class="rr-price">${g.sum}฿</div>
     </div>
