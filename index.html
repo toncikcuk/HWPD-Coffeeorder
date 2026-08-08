@@ -472,6 +472,10 @@
       </div>
     </div>
 
+    <!-- ปุ่มเลือกชนิด: ร้อน/เย็น/ปั่น — โชว์เฉพาะเมนูที่มีให้เลือกมากกว่า 1 ชนิด -->
+    <div class="field-label" id="mTypeLabel" style="display:none;">ชนิด</div>
+    <div class="opt-row" id="mType" style="display:none;"></div>
+
     <div class="field-label">ชื่อผู้สั่ง <span style="color:var(--coral-deep)">*</span></div>
     <input type="text" class="field-input" id="mOrderer" placeholder="พิมพ์ชื่อผู้สั่ง เช่น ส.ต.อ.ฉัตรชัย">
 
@@ -506,13 +510,15 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbybVsRQyto-dZSDVl5UBOWpfJxYZViM_JXYyj3_qxl7L-MJC--2TduI3IL0TdrrAivBew/exec";
 
 /* ====================== MENU DATA (โหลดจากชีต Menu ผ่าน GAS) ====================== */
-// รูปแบบ: [{ cat, icon, items:[{name, price, image, type, icon}] }]
+// รูปแบบ: [{ cat, icon, items:[{name, image, icon, types:['hot','cold'], prices:{hot:45,cold:50}, price}] }]
 let MENU = [];
 let menuLoaded = false;
 let menuLoadFailed = false;
 
 const SWEET_OPTS = ["หวานปกติ","หวานน้อย","ไม่หวาน","หวานมาก"];
 const ICE_OPTS = ["น้ำแข็งปกติ","น้ำแข็งน้อย","ไม่ใส่น้ำแข็ง"];
+// ป้ายภาษาไทยของแต่ละชนิด ใช้แสดงบนปุ่มเลือกในหน้าต่างสั่ง และในตะกร้า/ข้อความตั๋ว
+const TYPE_LABELS = { hot: "ร้อน", cold: "เย็น", blend: "ปั่น" };
 
 /* ====================== STATE ====================== */
 let cart = [];          // ยังไม่ส่ง — each item has a unique localId
@@ -521,6 +527,7 @@ let todayOrders = [];   // ข้อมูลที่ส่งไปแล้�
 let currentItem = null;
 let currentSelSweet = SWEET_OPTS[0];
 let currentSelIce = ICE_OPTS[0];
+let currentSelType = "hot";   // ชนิดที่กำลังเลือกอยู่ในหน้าต่างสั่ง (hot/cold/blend)
 let currentQty = 1;
 const MAX_QTY = 20;
 let suppressScrollSpy = false;
@@ -630,12 +637,16 @@ function renderMenu(){
       ${banner}
       <div class="menu-grid">
         ${c.items.map(it=>{
-          const t = it.type || 'hot';
+          const types = it.types && it.types.length ? it.types : ['hot'];
+          const defaultType = types[0];
           const photo = it.image
-            ? `<img src="${it.image}" alt="${it.name}" loading="lazy" onerror="this.parentElement.innerHTML='${it.icon || c.icon}'; this.parentElement.classList.add('${iconClassFor(t)}');">`
+            ? `<img src="${it.image}" alt="${it.name}" loading="lazy" onerror="this.parentElement.innerHTML='${it.icon || c.icon}'; this.parentElement.classList.add('${iconClassFor(defaultType)}');">`
             : (it.icon || c.icon);
-          const photoClass = it.image ? '' : iconClassFor(t);
-          return `<div class="menu-card" data-cat="${c.cat}" data-icon="${it.icon || c.icon}" data-name="${it.name}" data-price="${it.price}" data-type="${t}" data-image="${it.image || ''}">
+          const photoClass = it.image ? '' : iconClassFor(defaultType);
+          // เก็บ types/prices เป็น JSON ไว้ใน data attribute (ครอบด้วย single quote เพราะ JSON ใช้ double quote)
+          return `<div class="menu-card" data-cat="${c.cat}" data-icon="${it.icon || c.icon}" data-name="${it.name}"
+              data-price="${it.price}" data-image="${it.image || ''}"
+              data-types='${JSON.stringify(types)}' data-prices='${JSON.stringify(it.prices || {})}'>
             <div class="menu-photo ${photoClass}">${photo}</div>
             <div class="menu-name">${it.name}</div>
             <div class="menu-price num">${it.price} บาท</div>
@@ -650,7 +661,9 @@ function renderMenu(){
   menuContainerEl.querySelectorAll('.menu-card').forEach(card=>{
     card.addEventListener('click', ()=>openModal({
       cat: card.dataset.cat, icon: card.dataset.icon, name: card.dataset.name,
-      price: Number(card.dataset.price), type: card.dataset.type, image: card.dataset.image
+      price: Number(card.dataset.price), image: card.dataset.image,
+      types: JSON.parse(card.dataset.types || '["hot"]'),
+      prices: JSON.parse(card.dataset.prices || '{}')
     }));
   });
 
@@ -680,18 +693,46 @@ function setupScrollSpy(){
 
 /* ====================== MODAL ====================== */
 const modalBackdrop = document.getElementById('modalBackdrop');
+
+// โชว์/ซ่อนตัวเลือกน้ำแข็ง — ให้เลือกได้เฉพาะตอนเลือกชนิด "เย็น" เท่านั้น
+function updateIceVisibility(){
+  const showIce = currentSelType === "cold";
+  document.getElementById('mIceLabel').style.display = showIce ? 'block' : 'none';
+  document.getElementById('mIce').style.display = showIce ? 'flex' : 'none';
+}
+
 function openModal(item){
   currentItem = item;
   currentSelSweet = SWEET_OPTS[0];
   currentSelIce = ICE_OPTS[0];
   currentQty = 1;
+  const types = item.types && item.types.length ? item.types : ['hot'];
+  currentSelType = types[0];
+
   const iconEl = document.getElementById('mIcon');
   iconEl.innerHTML = item.image ? `<img src="${item.image}" alt="${item.name}" onerror="this.parentElement.textContent='${item.icon}';">` : item.icon;
   document.getElementById('mName').textContent = item.name;
-  document.getElementById('mPrice').textContent = item.price + " บาท";
+  document.getElementById('mPrice').textContent = (item.prices[currentSelType] != null ? item.prices[currentSelType] : item.price) + " บาท";
   document.getElementById('mOrderer').value = "";
   document.getElementById('mNote').value = "";
   document.getElementById('mQtyVal').textContent = currentQty;
+
+  // ปุ่มเลือกชนิด (ร้อน/เย็น/ปั่น) — โชว์เฉพาะเมนูที่มีให้เลือกมากกว่า 1 ชนิด
+  const showType = types.length > 1;
+  document.getElementById('mTypeLabel').style.display = showType ? 'block' : 'none';
+  document.getElementById('mType').style.display = showType ? 'flex' : 'none';
+  if(showType){
+    document.getElementById('mType').innerHTML = types.map((t,i)=>
+      `<div class="opt-pill ${i===0?'sel':''}" data-val="${t}">${TYPE_LABELS[t] || t}</div>`).join('');
+    document.querySelectorAll('#mType .opt-pill').forEach(p=>p.addEventListener('click',()=>{
+      document.querySelectorAll('#mType .opt-pill').forEach(x=>x.classList.remove('sel'));
+      p.classList.add('sel');
+      currentSelType = p.dataset.val;
+      const newPrice = currentItem.prices[currentSelType] != null ? currentItem.prices[currentSelType] : currentItem.price;
+      document.getElementById('mPrice').textContent = newPrice + " บาท";
+      updateIceVisibility();
+    }));
+  }
 
   document.getElementById('mSweet').innerHTML = SWEET_OPTS.map((s,i)=>
     `<div class="opt-pill ${i===0?'sel':''}" data-val="${s}">${s}</div>`).join('');
@@ -700,15 +741,13 @@ function openModal(item){
     p.classList.add('sel'); currentSelSweet = p.dataset.val;
   }));
 
-  const showIce = item.type === "cold";
-  document.getElementById('mIceLabel').style.display = showIce ? 'block':'none';
-  document.getElementById('mIce').style.display = showIce ? 'flex':'none';
   document.getElementById('mIce').innerHTML = ICE_OPTS.map((s,i)=>
     `<div class="opt-pill ${i===0?'sel':''}" data-val="${s}">${s}</div>`).join('');
   document.querySelectorAll('#mIce .opt-pill').forEach(p=>p.addEventListener('click',()=>{
     document.querySelectorAll('#mIce .opt-pill').forEach(x=>x.classList.remove('sel'));
     p.classList.add('sel'); currentSelIce = p.dataset.val;
   }));
+  updateIceVisibility();
 
   modalBackdrop.classList.add('open');
   setTimeout(()=>document.getElementById('mOrderer').focus(), 200);
@@ -738,11 +777,14 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
   const note = document.getElementById('mNote').value.trim();
   const qty = currentQty;
   const localId = 'c'+Date.now()+Math.random().toString(36).slice(2,7);
+  // ราคาจริงขึ้นกับชนิดที่เลือก (currentSelType) ไม่ใช่ราคาเริ่มต้นของเมนูเสมอไป
+  const finalPrice = currentItem.prices[currentSelType] != null ? currentItem.prices[currentSelType] : currentItem.price;
   const entry = {
     localId, name: orderer, category: currentItem.cat, menu: currentItem.name,
     icon: currentItem.icon, image: currentItem.image, sweet: currentSelSweet,
-    ice: currentItem.type==="cold" ? currentSelIce : "-",
-    price: currentItem.price, note: note, qty: qty
+    type: currentSelType, typeLabel: TYPE_LABELS[currentSelType] || currentSelType,
+    ice: currentSelType==="cold" ? currentSelIce : "-",
+    price: finalPrice, note: note, qty: qty
   };
   cart.push(entry);
   // ผูกตั๋ว/ข้อความเข้ากับ localId เดียวกับรายการในตะกร้า
@@ -757,6 +799,7 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
 function buildOrderText(e){
   const qtyTxt = (e.qty && e.qty>1) ? ` x${e.qty}` : '';
   let parts = [`<b>${e.name}</b> สั่ง ${e.menu}${qtyTxt}`];
+  if(e.typeLabel) parts.push(e.typeLabel);
   if(e.sweet) parts.push(e.sweet);
   if(e.ice && e.ice!=="-") parts.push(e.ice);
   if(e.note) parts.push('("' + e.note + '")');
@@ -814,12 +857,17 @@ function renderCart(){
   listEl.innerHTML = cart.map(it=>{
     const q = it.qty || 1;
     const iconInner = it.image ? `<img src="${it.image}" alt="${it.menu}" onerror="this.parentElement.textContent='${it.icon}';">` : it.icon;
+    const metaParts = [];
+    if(it.typeLabel) metaParts.push(it.typeLabel);
+    metaParts.push(it.sweet);
+    if(it.ice!=='-') metaParts.push(it.ice);
+    if(it.note) metaParts.push(it.note);
     return `
     <div class="cart-item" data-id="${it.localId}">
       <div class="ci-icon">${iconInner}</div>
       <div class="ci-info">
         <div class="ci-name">${it.menu} — คุณ${it.name}</div>
-        <div class="ci-meta">${it.sweet}${it.ice!=='-'?(' · '+it.ice):''}${it.note?(' · '+it.note):''}</div>
+        <div class="ci-meta">${metaParts.join(' · ')}</div>
       </div>
       <div class="ci-qty">
         <button class="ci-qty-btn" data-act="dec" data-id="${it.localId}">−</button>
@@ -890,7 +938,7 @@ function expandCartForBackend(){
       rows.push({
         localId: it.localId + '-' + i,
         name: it.name, category: it.category, menu: it.menu,
-        icon: it.icon, sweet: it.sweet, ice: it.ice, price: it.price, note: it.note
+        icon: it.icon, type: it.type, sweet: it.sweet, ice: it.ice, price: it.price, note: it.note
       });
     }
   });
@@ -960,14 +1008,14 @@ function renderSummary(){
   if(summaryMode === 'byMenu'){
     const groups = {};
     todayOrders.forEach(o=>{
-      const key = [o.menu, o.sweet, o.ice].join('|');
-      if(!groups[key]) groups[key] = {menu:o.menu, sweet:o.sweet, ice:o.ice, qty:0, sum:0};
+      const key = [o.menu, o.type, o.sweet, o.ice].join('|');
+      if(!groups[key]) groups[key] = {menu:o.menu, type:o.type, sweet:o.sweet, ice:o.ice, qty:0, sum:0};
       groups[key].qty++; groups[key].sum += Number(o.price);
     });
     rowsHtml = Object.values(groups).map(g=>`
       <div class="receipt-row">
         <div class="rr-left">
-          <div class="rr-name">${g.menu} × ${g.qty}</div>
+          <div class="rr-name">${g.menu}${g.type?(' ('+g.type+')'):''} × ${g.qty}</div>
           <div class="rr-meta">${g.sweet}${g.ice!=='-'?(' · '+g.ice):''}</div>
         </div>
         <div class="rr-price">${g.sum}฿</div>
@@ -984,7 +1032,7 @@ function renderSummary(){
       <div class="receipt-row">
         <div class="rr-left">
           <div class="rr-name">คุณ${g.name}</div>
-          <div class="rr-meta">${g.items.map(i=>i.menu+(i.sweet?' ('+i.sweet+')':'')).join(', ')}</div>
+          <div class="rr-meta">${g.items.map(i=>i.menu+(i.type?' ('+i.type+')':'')+(i.sweet?' '+i.sweet:'')).join(', ')}</div>
         </div>
         <div class="rr-price">${g.sum}฿</div>
       </div>
@@ -1095,14 +1143,14 @@ function renderHistoryReceipt(date, orders){
   const total = orders.reduce((s,o)=>s+Number(o.price),0);
   const groups = {};
   orders.forEach(o=>{
-    const key = [o.menu, o.sweet, o.ice].join('|');
-    if(!groups[key]) groups[key] = {menu:o.menu, sweet:o.sweet, ice:o.ice, qty:0, sum:0};
+    const key = [o.menu, o.type, o.sweet, o.ice].join('|');
+    if(!groups[key]) groups[key] = {menu:o.menu, type:o.type, sweet:o.sweet, ice:o.ice, qty:0, sum:0};
     groups[key].qty++; groups[key].sum += Number(o.price);
   });
   const rowsHtml = Object.values(groups).map(g=>`
     <div class="receipt-row">
       <div class="rr-left">
-        <div class="rr-name">${g.menu} × ${g.qty}</div>
+        <div class="rr-name">${g.menu}${g.type?(' ('+g.type+')'):''} × ${g.qty}</div>
         <div class="rr-meta">${g.sweet}${g.ice!=='-'?(' · '+g.ice):''}</div>
       </div>
       <div class="rr-price">${g.sum}฿</div>
