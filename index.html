@@ -328,52 +328,58 @@
   /* ================= ORDER PAGE (product-detail style) ================= */
   .modal-sheet.op{padding:0; max-height:94vh; display:flex; flex-direction:column;}
 
-  /* --- Hero: back button, qty stepper and photo card now share a flex row
-     so nothing overlaps, whatever size/shape the product photo is --- */
+  /* --- Hero: the photo now fills the whole banner edge-to-edge as a background
+     layer, with the back button and qty stepper floating above it on their own
+     z-index so the photo never covers them, no matter how big it is --- */
   .op-hero{
     background:linear-gradient(155deg,var(--navy-1),var(--navy-2) 75%,var(--navy-3));
-    border-radius:28px 28px 0 0; padding:16px 18px 20px; position:relative; flex-shrink:0;
+    border-radius:28px 28px 0 0; position:relative; flex-shrink:0;
+    height:190px; overflow:hidden;
   }
-  .op-hero-topbar{display:flex; align-items:center; justify-content:space-between;}
-  .op-back{
-    width:36px;height:36px;border-radius:50%; background:rgba(255,255,255,0.14); border:none;
-    color:#fff; font-size:19px; display:flex; align-items:center; justify-content:center;
-    cursor:pointer; transition:background .18s var(--ease); flex-shrink:0;
-  }
-  .op-back:active{background:rgba(255,255,255,0.28);}
-  .op-hero-main{
-    display:flex; align-items:center; gap:14px; margin-top:14px;
-  }
-  .op-qty{
-    display:flex; flex-direction:column; align-items:center; gap:7px;
-    background:linear-gradient(160deg,var(--coral),var(--coral-deep)); border-radius:100px; padding:9px 7px;
-    box-shadow:0 8px 18px rgba(201,79,39,0.4); flex-shrink:0;
-  }
-  .op-qty button{
-    width:25px; height:25px; border-radius:50%; border:none; background:rgba(255,255,255,0.92); color:var(--coral-deep);
-    font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center; cursor:pointer; line-height:1;
-  }
-  .op-qty button:active{transform:scale(0.88);}
-  .op-qty .op-qty-val{color:#fff; font-weight:800; font-size:14px; font-family:'IBM Plex Mono',monospace;}
-  /* Photo sits in its own white card so pictures that come with their own
-     background (not transparent PNGs) still look tidy and framed */
   .op-photo-wrap{
-    flex:1; height:128px; border-radius:20px; overflow:hidden;
-    background:linear-gradient(160deg,#FAF7EE,#F1E9D6);
+    position:absolute; inset:0; z-index:1;
     display:flex; align-items:center; justify-content:center;
-    box-shadow:0 10px 22px rgba(0,0,0,0.18);
-    position:relative;
   }
   .op-photo-wrap img{
     width:100%; height:100%; object-fit:cover; display:block;
   }
-  .op-photo-emoji{font-size:52px;}
+  .op-photo-emoji{font-size:60px;}
+  /* soft gradient over the photo so the top controls stay readable on any image */
+  .op-hero::after{
+    content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:linear-gradient(180deg, rgba(18,43,56,0.55) 0%, rgba(18,43,56,0.05) 38%, rgba(18,43,56,0.05) 62%, rgba(18,43,56,0.5) 100%);
+  }
+  .op-hero-topbar{
+    position:absolute; top:16px; left:18px; right:18px; z-index:5;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .op-back{
+    width:36px;height:36px;border-radius:50%; background:rgba(18,43,56,0.55); border:none;
+    color:#fff; font-size:19px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:background .18s var(--ease); flex-shrink:0;
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  }
+  .op-back:active{background:rgba(18,43,56,0.75);}
+  .op-qty{
+    position:absolute; left:14px; bottom:14px; z-index:5;
+    display:flex; flex-direction:row; align-items:center; gap:9px;
+    background:rgba(18,43,56,0.55); border-radius:100px; padding:6px 8px;
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    box-shadow:0 8px 18px rgba(0,0,0,0.25);
+  }
+  .op-qty button{
+    width:25px; height:25px; border-radius:50%; border:none; background:rgba(255,255,255,0.94); color:var(--coral-deep);
+    font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center; cursor:pointer; line-height:1;
+  }
+  .op-qty button:active{transform:scale(0.88);}
+  .op-qty .op-qty-val{color:#fff; font-weight:800; font-size:14px; font-family:'IBM Plex Mono',monospace; min-width:14px; text-align:center;}
 
   .op-body{padding:18px 20px 4px; overflow-y:auto; flex:1;}
   .op-title{font-size:19px; font-weight:700; font-family:'Prompt',sans-serif; color:var(--navy-1);}
   .op-unitprice{font-size:12.5px; color:var(--muted); margin-top:4px; font-family:'IBM Plex Mono',monospace;}
 
   .op-section-label{font-size:12px; font-weight:700; margin:20px 0 10px; color:var(--ink); text-transform:uppercase; letter-spacing:.4px;}
+  .op-cz-hint{font-size:10.5px; color:var(--muted); margin:0 0 10px; opacity:0.75;}
   .op-size-row{display:flex; gap:9px;}
   .op-size-pill{
     flex:1; text-align:center; padding:11px 6px; border-radius:16px; border:1.5px solid var(--line);
@@ -548,16 +554,14 @@
     <!-- ส่วนหัว: ปุ่มย้อนกลับอยู่แถวบนสุด แยกจากรูป+ตัวปรับจำนวนที่อยู่แถวถัดมา
          เพื่อไม่ให้ทับกันไม่ว่ารูปจะมีพื้นหลังทึบหรือโปร่งใสก็ตาม -->
     <div class="op-hero">
+      <div class="op-photo-wrap"><div class="op-photo-emoji" id="mIcon">☕</div></div>
       <div class="op-hero-topbar">
         <button type="button" class="op-back" id="mCancel" aria-label="ย้อนกลับ">‹</button>
       </div>
-      <div class="op-hero-main">
-        <div class="op-qty">
-          <button type="button" id="mQtyInc" aria-label="เพิ่มจำนวน">+</button>
-          <span class="op-qty-val" id="mQtyVal">1</span>
-          <button type="button" id="mQtyDec" aria-label="ลดจำนวน">−</button>
-        </div>
-        <div class="op-photo-wrap"><div class="op-photo-emoji" id="mIcon">☕</div></div>
+      <div class="op-qty">
+        <button type="button" id="mQtyDec" aria-label="ลดจำนวน">−</button>
+        <span class="op-qty-val" id="mQtyVal">1</span>
+        <button type="button" id="mQtyInc" aria-label="เพิ่มจำนวน">+</button>
       </div>
     </div>
 
@@ -570,7 +574,8 @@
       <div class="op-size-row" id="mType" style="display:none;"></div>
 
       <!-- ปรับแต่งเครื่องดื่ม: กดที่การ์ดเพื่อวนเปลี่ยนตัวเลือก (แทนที่แถวปุ่มยาวแบบเดิม) -->
-      <div class="op-section-label">ปรับแต่งเครื่องดื่ม</div>
+      <div class="op-section-label" style="margin-bottom:2px;">ปรับแต่งเครื่องดื่ม</div>
+      <div class="op-cz-hint">(คลิกที่ปุ่มเพื่อปรับแต่ง)</div>
       <div class="op-cz-row">
         <div class="op-cz-card" id="mSweetCard">
           <div class="op-cz-icon">🍯</div>
