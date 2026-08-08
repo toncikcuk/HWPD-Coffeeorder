@@ -325,6 +325,69 @@
   .opt-pill.sel{background:var(--navy-1); border-color:var(--navy-1); color:#fff;}
   .modal-actions{display:flex; gap:10px; margin-top:22px;}
 
+  /* ================= ORDER PAGE (product-detail style) ================= */
+  .modal-sheet.op{padding:0; max-height:94vh; display:flex; flex-direction:column;}
+  .op-hero{
+    background:linear-gradient(155deg,var(--navy-1),var(--navy-2) 75%,var(--navy-3));
+    border-radius:28px 28px 0 0; padding:16px 18px 22px; position:relative; flex-shrink:0;
+  }
+  .op-back{
+    width:36px;height:36px;border-radius:50%; background:rgba(255,255,255,0.14); border:none;
+    color:#fff; font-size:19px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:background .18s var(--ease);
+  }
+  .op-back:active{background:rgba(255,255,255,0.28);}
+  .op-photo-wrap{display:flex; align-items:center; justify-content:center; height:132px; margin-top:2px; position:relative;}
+  .op-photo-wrap img{max-height:100%; max-width:78%; object-fit:contain; filter:drop-shadow(0 12px 18px rgba(0,0,0,0.32));}
+  .op-photo-emoji{font-size:64px; filter:drop-shadow(0 10px 14px rgba(0,0,0,0.3));}
+  .op-qty{
+    position:absolute; left:0; top:38px; display:flex; flex-direction:column; align-items:center; gap:7px;
+    background:linear-gradient(160deg,var(--coral),var(--coral-deep)); border-radius:100px; padding:9px 7px;
+    box-shadow:0 8px 18px rgba(201,79,39,0.4);
+  }
+  .op-qty button{
+    width:25px; height:25px; border-radius:50%; border:none; background:rgba(255,255,255,0.92); color:var(--coral-deep);
+    font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center; cursor:pointer; line-height:1;
+  }
+  .op-qty button:active{transform:scale(0.88);}
+  .op-qty .op-qty-val{color:#fff; font-weight:800; font-size:14px; font-family:'IBM Plex Mono',monospace;}
+
+  .op-body{padding:18px 20px 4px; overflow-y:auto; flex:1;}
+  .op-title{font-size:19px; font-weight:700; font-family:'Prompt',sans-serif; color:var(--navy-1);}
+  .op-unitprice{font-size:12.5px; color:var(--muted); margin-top:4px; font-family:'IBM Plex Mono',monospace;}
+
+  .op-section-label{font-size:12px; font-weight:700; margin:20px 0 10px; color:var(--ink); text-transform:uppercase; letter-spacing:.4px;}
+  .op-size-row{display:flex; gap:9px;}
+  .op-size-pill{
+    flex:1; text-align:center; padding:11px 6px; border-radius:16px; border:1.5px solid var(--line);
+    background:#fff; color:var(--navy-2); font-weight:700; font-size:12.5px; cursor:pointer; transition:.18s var(--ease);
+  }
+  .op-size-pill.sel{background:var(--coral); border-color:var(--coral); color:#fff; box-shadow:0 8px 16px rgba(234,108,66,0.32);}
+
+  .op-cz-row{display:flex; gap:9px;}
+  .op-cz-card{
+    flex:1; background:var(--sky-tint); border-radius:16px; padding:11px 6px; text-align:center; cursor:pointer;
+    border:1.5px solid transparent; transition:.18s var(--ease);
+  }
+  .op-cz-card:active{transform:scale(0.96);}
+  .op-cz-card.cz-off{opacity:0.4; pointer-events:none;}
+  .op-cz-icon{font-size:18px;}
+  .op-cz-label{font-size:9.5px; color:var(--muted); margin-top:5px; font-weight:600;}
+  .op-cz-value{font-size:11.5px; font-weight:700; color:var(--navy-1); margin-top:1px;}
+
+  .op-footer{
+    display:flex; align-items:center; gap:12px; padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+    border-top:1.5px solid var(--line); flex-shrink:0; background:#fff;
+  }
+  .op-total .lbl{font-size:10.5px; color:var(--muted); font-weight:600;}
+  .op-total .amt{font-size:19px; font-weight:800; color:var(--coral-deep); font-family:'IBM Plex Mono',monospace;}
+  .op-addbtn{
+    flex:1; background:linear-gradient(135deg,var(--navy-2),var(--navy-1)); color:#fff; border:none; border-radius:100px;
+    padding:14px; font-weight:700; font-size:14px; cursor:pointer; font-family:'Prompt',sans-serif;
+    box-shadow:0 10px 20px rgba(18,43,56,0.28); transition:transform .15s var(--ease);
+  }
+  .op-addbtn:active{transform:scale(0.97);}
+
   .qty-stepper{
     display:flex; align-items:center; gap:14px; background:#FAF6EA;
     border:1.5px solid var(--line); border-radius:100px; padding:6px 8px; width:fit-content;
@@ -461,43 +524,57 @@
 
 </div>
 
-<!-- Order modal -->
+<!-- Order page (product-detail style) -->
 <div class="modal-backdrop" id="modalBackdrop">
-  <div class="modal-sheet">
-    <div class="modal-head">
-      <div class="modal-icon" id="mIcon">☕</div>
-      <div>
-        <div class="modal-title" id="mName">-</div>
-        <div class="modal-price" id="mPrice">-</div>
+  <div class="modal-sheet op">
+
+    <!-- ส่วนหัว: รูปเครื่องดื่ม + ปุ่มย้อนกลับ + ตัวปรับจำนวนแนวตั้ง -->
+    <div class="op-hero">
+      <button type="button" class="op-back" id="mCancel" aria-label="ย้อนกลับ">‹</button>
+      <div class="op-qty">
+        <button type="button" id="mQtyInc" aria-label="เพิ่มจำนวน">+</button>
+        <span class="op-qty-val" id="mQtyVal">1</span>
+        <button type="button" id="mQtyDec" aria-label="ลดจำนวน">−</button>
       </div>
+      <div class="op-photo-wrap"><div class="op-photo-emoji" id="mIcon">☕</div></div>
     </div>
 
-    <!-- ปุ่มเลือกชนิด: ร้อน/เย็น/ปั่น — โชว์เฉพาะเมนูที่มีให้เลือกมากกว่า 1 ชนิด -->
-    <div class="field-label" id="mTypeLabel" style="display:none;">ชนิด</div>
-    <div class="opt-row" id="mType" style="display:none;"></div>
+    <div class="op-body">
+      <div class="op-title" id="mName">-</div>
+      <div class="op-unitprice num" id="mPrice">-</div>
 
-    <div class="field-label">ชื่อผู้สั่ง <span style="color:var(--coral-deep)">*</span></div>
-    <input type="text" class="field-input" id="mOrderer" placeholder="พิมพ์ชื่อผู้สั่ง เช่น ส.ต.อ.ฉัตรชัย">
+      <!-- ปุ่มเลือกชนิด: ร้อน/เย็น/ปั่น — โชว์เฉพาะเมนูที่มีให้เลือกมากกว่า 1 ชนิด -->
+      <div class="op-section-label" id="mTypeLabel" style="display:none;">ชนิด</div>
+      <div class="op-size-row" id="mType" style="display:none;"></div>
 
-    <div class="field-label">จำนวน (แก้ว)</div>
-    <div class="qty-stepper">
-      <button type="button" class="qty-btn dec" id="mQtyDec">−</button>
-      <span class="qty-val" id="mQtyVal">1</span>
-      <button type="button" class="qty-btn" id="mQtyInc">+</button>
+      <!-- ปรับแต่งเครื่องดื่ม: กดที่การ์ดเพื่อวนเปลี่ยนตัวเลือก (แทนที่แถวปุ่มยาวแบบเดิม) -->
+      <div class="op-section-label">ปรับแต่งเครื่องดื่ม</div>
+      <div class="op-cz-row">
+        <div class="op-cz-card" id="mSweetCard">
+          <div class="op-cz-icon">🍯</div>
+          <div class="op-cz-label">ความหวาน</div>
+          <div class="op-cz-value" id="mSweetVal">-</div>
+        </div>
+        <div class="op-cz-card" id="mIceCard">
+          <div class="op-cz-icon">🧊</div>
+          <div class="op-cz-label">น้ำแข็ง</div>
+          <div class="op-cz-value" id="mIceVal">-</div>
+        </div>
+      </div>
+
+      <div class="field-label">ชื่อผู้สั่ง <span style="color:var(--coral-deep)">*</span></div>
+      <input type="text" class="field-input" id="mOrderer" placeholder="พิมพ์ชื่อผู้สั่ง เช่น ส.ต.อ.ฉัตรชัย">
+
+      <div class="field-label">หมายเหตุ (ถ้ามี)</div>
+      <input type="text" class="field-input" id="mNote" placeholder="เช่น ใส่ครีมเทียมเพิ่ม" style="margin-bottom:18px;">
     </div>
 
-    <div class="field-label">ความหวาน</div>
-    <div class="opt-row" id="mSweet"></div>
-
-    <div class="field-label" id="mIceLabel">ระดับน้ำแข็ง</div>
-    <div class="opt-row" id="mIce"></div>
-
-    <div class="field-label">หมายเหตุ (ถ้ามี)</div>
-    <input type="text" class="field-input" id="mNote" placeholder="เช่น ใส่ครีมเทียมเพิ่ม">
-
-    <div class="modal-actions">
-      <button class="btn btn-outline" id="mCancel">ยกเลิก</button>
-      <button class="btn btn-primary" id="mAdd">เพิ่มลงตะกร้า</button>
+    <div class="op-footer">
+      <div class="op-total">
+        <div class="lbl">ราคารวม</div>
+        <div class="amt num" id="mTotal">0 บาท</div>
+      </div>
+      <button class="op-addbtn" id="mAdd">เพิ่มลงตะกร้า</button>
     </div>
   </div>
 </div>
@@ -693,18 +770,52 @@ function setupScrollSpy(){
 
 /* ====================== MODAL ====================== */
 const modalBackdrop = document.getElementById('modalBackdrop');
+let sweetIdx = 0;   // ตำแหน่งปัจจุบันใน SWEET_OPTS ที่การ์ด "ความหวาน" กำลังแสดง
+let iceIdx = 0;     // ตำแหน่งปัจจุบันใน ICE_OPTS ที่การ์ด "น้ำแข็ง" กำลังแสดง
 
-// โชว์/ซ่อนตัวเลือกน้ำแข็ง — ให้เลือกได้เฉพาะตอนเลือกชนิด "เย็น" เท่านั้น
+// ราคาต่อแก้วตามชนิดที่เลือกอยู่ตอนนี้
+function currentUnitPrice(){
+  if(!currentItem) return 0;
+  return currentItem.prices[currentSelType] != null ? currentItem.prices[currentSelType] : currentItem.price;
+}
+
+// อัปเดตราคาต่อแก้ว + ราคารวม (ต่อแก้ว x จำนวน) ทุกครั้งที่ชนิดหรือจำนวนเปลี่ยน
+function updateTotalDisplay(){
+  const unit = currentUnitPrice();
+  document.getElementById('mPrice').textContent = unit + ' บาท / แก้ว';
+  document.getElementById('mTotal').textContent = (unit * currentQty) + ' บาท';
+}
+
+// การ์ด "น้ำแข็ง" กดใช้ได้เฉพาะตอนเลือกชนิด "เย็น" เท่านั้น — ชนิดอื่นจะจางลงและกดไม่ได้
 function updateIceVisibility(){
   const showIce = currentSelType === "cold";
-  document.getElementById('mIceLabel').style.display = showIce ? 'block' : 'none';
-  document.getElementById('mIce').style.display = showIce ? 'flex' : 'none';
+  document.getElementById('mIceCard').classList.toggle('cz-off', !showIce);
+  renderIceCard();
 }
+
+function renderSweetCard(){
+  currentSelSweet = SWEET_OPTS[sweetIdx];
+  document.getElementById('mSweetVal').textContent = currentSelSweet;
+}
+function renderIceCard(){
+  currentSelIce = ICE_OPTS[iceIdx];
+  document.getElementById('mIceVal').textContent = currentSelType === "cold" ? currentSelIce : '-';
+}
+
+// แตะที่การ์ดเพื่อวนไปตัวเลือกถัดไป (แทนแถวปุ่มยาวแบบเดิม)
+document.getElementById('mSweetCard').addEventListener('click', ()=>{
+  sweetIdx = (sweetIdx + 1) % SWEET_OPTS.length;
+  renderSweetCard();
+});
+document.getElementById('mIceCard').addEventListener('click', ()=>{
+  if(currentSelType !== 'cold') return;
+  iceIdx = (iceIdx + 1) % ICE_OPTS.length;
+  renderIceCard();
+});
 
 function openModal(item){
   currentItem = item;
-  currentSelSweet = SWEET_OPTS[0];
-  currentSelIce = ICE_OPTS[0];
+  sweetIdx = 0; iceIdx = 0;
   currentQty = 1;
   const types = item.types && item.types.length ? item.types : ['hot'];
   currentSelType = types[0];
@@ -712,10 +823,10 @@ function openModal(item){
   const iconEl = document.getElementById('mIcon');
   iconEl.innerHTML = item.image ? `<img src="${item.image}" alt="${item.name}" onerror="this.parentElement.textContent='${item.icon}';">` : item.icon;
   document.getElementById('mName').textContent = item.name;
-  document.getElementById('mPrice').textContent = (item.prices[currentSelType] != null ? item.prices[currentSelType] : item.price) + " บาท";
   document.getElementById('mOrderer').value = "";
   document.getElementById('mNote').value = "";
   document.getElementById('mQtyVal').textContent = currentQty;
+  renderSweetCard();
 
   // ปุ่มเลือกชนิด (ร้อน/เย็น/ปั่น) — โชว์เฉพาะเมนูที่มีให้เลือกมากกว่า 1 ชนิด
   const showType = types.length > 1;
@@ -723,31 +834,18 @@ function openModal(item){
   document.getElementById('mType').style.display = showType ? 'flex' : 'none';
   if(showType){
     document.getElementById('mType').innerHTML = types.map((t,i)=>
-      `<div class="opt-pill ${i===0?'sel':''}" data-val="${t}">${TYPE_LABELS[t] || t}</div>`).join('');
-    document.querySelectorAll('#mType .opt-pill').forEach(p=>p.addEventListener('click',()=>{
-      document.querySelectorAll('#mType .opt-pill').forEach(x=>x.classList.remove('sel'));
+      `<div class="op-size-pill ${i===0?'sel':''}" data-val="${t}">${TYPE_LABELS[t] || t}</div>`).join('');
+    document.querySelectorAll('#mType .op-size-pill').forEach(p=>p.addEventListener('click',()=>{
+      document.querySelectorAll('#mType .op-size-pill').forEach(x=>x.classList.remove('sel'));
       p.classList.add('sel');
       currentSelType = p.dataset.val;
-      const newPrice = currentItem.prices[currentSelType] != null ? currentItem.prices[currentSelType] : currentItem.price;
-      document.getElementById('mPrice').textContent = newPrice + " บาท";
       updateIceVisibility();
+      updateTotalDisplay();
     }));
   }
 
-  document.getElementById('mSweet').innerHTML = SWEET_OPTS.map((s,i)=>
-    `<div class="opt-pill ${i===0?'sel':''}" data-val="${s}">${s}</div>`).join('');
-  document.querySelectorAll('#mSweet .opt-pill').forEach(p=>p.addEventListener('click',()=>{
-    document.querySelectorAll('#mSweet .opt-pill').forEach(x=>x.classList.remove('sel'));
-    p.classList.add('sel'); currentSelSweet = p.dataset.val;
-  }));
-
-  document.getElementById('mIce').innerHTML = ICE_OPTS.map((s,i)=>
-    `<div class="opt-pill ${i===0?'sel':''}" data-val="${s}">${s}</div>`).join('');
-  document.querySelectorAll('#mIce .opt-pill').forEach(p=>p.addEventListener('click',()=>{
-    document.querySelectorAll('#mIce .opt-pill').forEach(x=>x.classList.remove('sel'));
-    p.classList.add('sel'); currentSelIce = p.dataset.val;
-  }));
   updateIceVisibility();
+  updateTotalDisplay();
 
   modalBackdrop.classList.add('open');
   setTimeout(()=>document.getElementById('mOrderer').focus(), 200);
@@ -760,11 +858,13 @@ document.getElementById('mQtyDec').addEventListener('click', ()=>{
   if(currentQty <= 1) return;
   currentQty--;
   document.getElementById('mQtyVal').textContent = currentQty;
+  updateTotalDisplay();
 });
 document.getElementById('mQtyInc').addEventListener('click', ()=>{
   if(currentQty >= MAX_QTY) return;
   currentQty++;
   document.getElementById('mQtyVal').textContent = currentQty;
+  updateTotalDisplay();
 });
 
 document.getElementById('mAdd').addEventListener('click', ()=>{
@@ -778,7 +878,7 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
   const qty = currentQty;
   const localId = 'c'+Date.now()+Math.random().toString(36).slice(2,7);
   // ราคาจริงขึ้นกับชนิดที่เลือก (currentSelType) ไม่ใช่ราคาเริ่มต้นของเมนูเสมอไป
-  const finalPrice = currentItem.prices[currentSelType] != null ? currentItem.prices[currentSelType] : currentItem.price;
+  const finalPrice = currentUnitPrice();
   const entry = {
     localId, name: orderer, category: currentItem.cat, menu: currentItem.name,
     icon: currentItem.icon, image: currentItem.image, sweet: currentSelSweet,
