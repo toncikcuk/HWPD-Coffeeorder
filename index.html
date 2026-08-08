@@ -326,7 +326,7 @@
   .modal-actions{display:flex; gap:10px; margin-top:22px;}
 
   /* ================= ORDER PAGE (product-detail style) ================= */
-  .modal-sheet.op{padding:0; max-height:94vh; display:flex; flex-direction:column;}
+  .modal-sheet.op{padding:0; max-height:94vh; display:flex; flex-direction:column; overflow:visible;}
 
   /* --- Hero: the photo now fills the whole banner edge-to-edge as a background
      layer, with the back button and qty stepper floating above it on their own
@@ -334,10 +334,10 @@
   .op-hero{
     background:linear-gradient(155deg,var(--navy-1),var(--navy-2) 75%,var(--navy-3));
     border-radius:28px 28px 0 0; position:relative; flex-shrink:0;
-    height:190px; overflow:hidden;
+    height:190px;
   }
   .op-photo-wrap{
-    position:absolute; inset:0; z-index:1;
+    position:absolute; inset:0; z-index:1; border-radius:28px 28px 0 0; overflow:hidden;
     display:flex; align-items:center; justify-content:center;
   }
   .op-photo-emoji{
@@ -350,11 +350,11 @@
   /* soft gradient over the photo so the top controls stay readable on any image */
   .op-hero::after{
     content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
+    border-radius:28px 28px 0 0;
     background:linear-gradient(180deg, rgba(18,43,56,0.55) 0%, rgba(18,43,56,0.05) 38%, rgba(18,43,56,0.05) 62%, rgba(18,43,56,0.5) 100%);
   }
   .op-hero-topbar{
-    position:absolute; top:16px; left:18px; right:18px; z-index:5;
-    display:flex; align-items:center; justify-content:space-between;
+    position:absolute; top:16px; left:18px; z-index:5;
   }
   .op-back{
     width:36px;height:36px;border-radius:50%; background:rgba(18,43,56,0.55); border:none;
@@ -363,8 +363,20 @@
     backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   }
   .op-back:active{background:rgba(18,43,56,0.75);}
+  /* Close (X) pops out beyond the banner's top-right corner, like a badge
+     sitting half on / half off the card — sheet's overflow is set to visible
+     below so this isn't clipped */
+  .op-close{
+    position:absolute; top:-14px; right:14px; z-index:6;
+    width:34px; height:34px; border-radius:50%; border:2px solid #fff;
+    background:linear-gradient(160deg,#F0523A,#C42E17); color:#fff;
+    font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; box-shadow:0 8px 16px rgba(196,46,23,0.45);
+    transition:transform .15s var(--ease);
+  }
+  .op-close:active{transform:scale(0.88);}
   .op-qty{
-    position:absolute; left:14px; bottom:14px; z-index:5;
+    position:absolute; right:14px; bottom:14px; z-index:5;
     display:flex; flex-direction:row; align-items:center; gap:9px;
     background:rgba(18,43,56,0.55); border-radius:100px; padding:6px 8px;
     backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
@@ -561,6 +573,7 @@
       <div class="op-hero-topbar">
         <button type="button" class="op-back" id="mCancel" aria-label="ย้อนกลับ">‹</button>
       </div>
+      <button type="button" class="op-close" id="mClose" aria-label="ปิดหน้าต่าง">✕</button>
       <div class="op-qty">
         <button type="button" id="mQtyDec" aria-label="ลดจำนวน">−</button>
         <span class="op-qty-val" id="mQtyVal">1</span>
@@ -882,6 +895,7 @@ function openModal(item){
 }
 function closeModal(){ modalBackdrop.classList.remove('open'); currentItem=null; }
 document.getElementById('mCancel').addEventListener('click', closeModal);
+document.getElementById('mClose').addEventListener('click', closeModal);
 modalBackdrop.addEventListener('click', (e)=>{ if(e.target===modalBackdrop) closeModal(); });
 
 document.getElementById('mQtyDec').addEventListener('click', ()=>{
