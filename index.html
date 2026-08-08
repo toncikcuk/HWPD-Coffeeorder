@@ -442,6 +442,23 @@
 
   .save-btn-row{display:flex; gap:10px; padding:0 0 14px;}
 
+  /* ---------- Image preview / save sheet ---------- */
+  .imgprev-backdrop{
+    position:fixed; inset:0; background:rgba(10,18,23,0.95); z-index:300;
+    display:none; flex-direction:column;
+  }
+  .imgprev-backdrop.open{display:flex;}
+  .imgprev-top{display:flex; justify-content:flex-end; padding:calc(14px + env(safe-area-inset-top)) 16px 4px;}
+  .imgprev-close{
+    width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.14); border:none;
+    color:#fff; font-size:17px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; touch-action:manipulation;
+  }
+  .imgprev-scroll{flex:1; overflow:auto; display:flex; align-items:flex-start; justify-content:center; padding:6px 16px;}
+  .imgprev-scroll img{max-width:100%; height:auto; border-radius:16px; box-shadow:0 20px 44px rgba(0,0,0,0.45);}
+  .imgprev-hint{text-align:center; color:rgba(255,255,255,0.68); font-size:11.5px; padding:8px 20px 0;}
+  .imgprev-actions{padding:12px 16px calc(14px + env(safe-area-inset-bottom));}
+
   ::-webkit-scrollbar{width:0; height:0;}
 
   /* ================= DESKTOP WEBAPP LAYOUT ================= */
@@ -594,6 +611,21 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Image preview / save sheet — shows the generated receipt as an <img> the
+     user can long-press to save (works even where share()/downloads get
+     silently blocked), plus a share/save button they tap directly (a fresh
+     user gesture, so it isn't blocked like a delayed auto-download would be) -->
+<div class="imgprev-backdrop" id="imgPrevBackdrop">
+  <div class="imgprev-top">
+    <button type="button" class="imgprev-close" id="imgPrevClose" aria-label="ปิด">✕</button>
+  </div>
+  <div class="imgprev-scroll"><img id="imgPrevImg" alt="ตั๋วกาแฟ Café Amazon"></div>
+  <div class="imgprev-hint">กดค้างที่รูปด้านบนเพื่อบันทึกรูปภาพลงเครื่องได้เลย</div>
+  <div class="imgprev-actions">
+    <button class="btn btn-primary" id="imgPrevSaveBtn">📤 แชร์ / บันทึกรูปภาพ</button>
+  </div>
+</div>
 
 <script>
 /* ====================== CONFIG ====================== */
@@ -1233,57 +1265,71 @@ function renderHistoryReceipt(date, orders){
 }
 
 /* ====================== SAVE IMAGE (mobile-safe) ======================
-   Plain <a download> only works reliably on desktop and Android Chrome.
-   iOS Safari ignores the download attribute entirely, so tapping the
-   button there did nothing. This version:
-   1) Tries the Web Share API with a real file — on phones this opens the
-      native share sheet, which includes "Save Image" / "Save to Photos".
-   2) Falls back to the classic <a download> click (desktop, Android).
-   3) Last resort: opens the image in a new tab so the user can long-press
-      it and choose "Save Image" manually (works everywhere, incl. iOS).
-*/
-async function saveCanvasAsImage_(canvas, fname){
-  const blob = await new Promise(res=>canvas.toBlob(res, 'image/png'));
-  if(!blob) throw new Error('toBlob failed');
+   The old flow called navigator.share()/downloaded automatically right after
+   html2canvas finished rendering. On phones that delay is enough for the
+   browser to decide the tap is "too old" to count as a user gesture anymore,
+   so share() gets silently rejected and window.open()/auto-download gets
+   silently blocked — nothing visibly happens, which is exactly the bug.
 
+   Fix: once the image is rendered we just SHOW it on screen (an <img> the
+   user can long-press to save — needs no permission or gesture at all), and
+   the actual share/download only fires when the user taps the button
+   *inside* that preview — a brand-new, fresh tap, so it's never blocked.
+*/
+let __previewBlob = null;
+let __previewFname = 'coffee-order.png';
+
+function openImagePreview_(canvas, fname){
+  return new Promise(resolve=>{
+    canvas.toBlob(blob=>{
+      if(!blob){ resolve(false); return; }
+      __previewBlob = blob;
+      __previewFname = fname;
+      const url = URL.createObjectURL(blob);
+      document.getElementById('imgPrevImg').src = url;
+      document.getElementById('imgPrevBackdrop').classList.add('open');
+      resolve(true);
+    }, 'image/png');
+  });
+}
+
+document.getElementById('imgPrevClose').addEventListener('click', ()=>{
+  document.getElementById('imgPrevBackdrop').classList.remove('open');
+});
+
+document.getElementById('imgPrevSaveBtn').addEventListener('click', async ()=>{
+  if(!__previewBlob) return;
+  // เรียก share() เป็นบรรทัดแรกทันทีในตัวจัดการอีเวนต์นี้ (ไม่มี await ใดๆ ก่อนหน้า)
+  // เพื่อรักษาสถานะ "ผู้ใช้แตะเอง" ไว้ ไม่ให้เบราว์เซอร์บล็อกแบบเงียบๆ
   if(navigator.canShare && navigator.share){
     try{
-      const file = new File([blob], fname, {type:'image/png'});
+      const file = new File([__previewBlob], __previewFname, {type:'image/png'});
       if(navigator.canShare({files:[file]})){
         await navigator.share({files:[file], title:'ตั๋วกาแฟ Café Amazon'});
-        showToast('เลือก "บันทึกรูปภาพ" จากเมนูแชร์ได้เลย ✅');
+        showToast('แชร์ / บันทึกเรียบร้อย ✅');
         return;
       }
     }catch(err){
-      // ผู้ใช้กดยกเลิกหน้าต่างแชร์ ก็ไม่ต้องทำอะไรต่อ ไม่ต้อง fallback
-      if(err && err.name === 'AbortError') return;
+      if(err && err.name === 'AbortError') return; // ผู้ใช้กดยกเลิกเอง ไม่ต้องทำอะไรต่อ
       console.error('share failed, falling back', err);
     }
   }
-
-  const url = URL.createObjectURL(blob);
-  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
-  if(!isIOS){
-    const link = document.createElement('a');
-    link.download = fname;
-    link.href = url;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 4000);
-    showToast('บันทึกรูปภาพแล้ว ✅');
-  } else {
-    // iOS Safari: เปิดรูปในแท็บใหม่ ให้กดค้างที่รูปแล้วเลือก "เพิ่มรูปภาพลงในรูปภาพ"
-    window.open(url, '_blank');
-    showToast('แตะค้างที่รูปแล้วเลือก "บันทึกรูปภาพ" ได้เลย');
-  }
-}
+  const url = URL.createObjectURL(__previewBlob);
+  const link = document.createElement('a');
+  link.download = __previewFname;
+  link.href = url;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  showToast('บันทึกรูปภาพแล้ว (หรือกดค้างที่รูปด้านบนเพื่อบันทึก) ✅');
+});
 
 async function saveReceiptImageEl_(node, fname){
   showToast('กำลังสร้างรูปภาพ...');
   try{
     const canvas = await html2canvas(node, {scale:2, backgroundColor:'#ffffff', useCORS:true});
-    await saveCanvasAsImage_(canvas, fname);
+    await openImagePreview_(canvas, fname);
   }catch(err){
     console.error(err);
     showToast('บันทึกรูปไม่สำเร็จ');
@@ -1296,7 +1342,7 @@ async function saveReceiptImage(){
   try{
     const canvas = await html2canvas(node, {scale:2, backgroundColor:'#ffffff', useCORS:true});
     const fname = 'coffee-order-' + new Date().toISOString().slice(0,10) + '.png';
-    await saveCanvasAsImage_(canvas, fname);
+    await openImagePreview_(canvas, fname);
   }catch(err){
     console.error(err);
     showToast('บันทึกรูปไม่สำเร็จ');
