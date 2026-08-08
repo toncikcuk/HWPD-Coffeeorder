@@ -37,6 +37,10 @@
     --header-h:150px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  /* Prevent the double-tap-to-zoom gesture from firing on repeated fast taps
+     (the qty +/- buttons especially) and keep the page pinch-zoom locked */
+  button, .chip, .menu-card, .menu-add, .navbtn, .op-size-pill, .subtab,
+  .ci-qty-btn, .ci-del, .hist-chip{ touch-action:manipulation; }
   html{scroll-behavior:smooth;}
   html,body{margin:0;padding:0;}
   body{
@@ -174,22 +178,11 @@
   .cartpanel-heading h3{font-size:15.5px; margin:0; color:var(--navy-1); font-weight:700; display:flex; align-items:center; gap:7px;}
   .cartpanel-heading span{font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace; background:var(--coral-tint); padding:4px 10px; border-radius:100px;}
 
-  .chatlog{margin-bottom:16px; display:flex; flex-direction:column; gap:8px;}
   .chatlog-empty{
     text-align:center; color:var(--muted); font-size:12.5px;
     padding:24px 14px; background:var(--paper); border:1.5px dashed var(--line);
     border-radius:var(--radius-lg);
   }
-  .bubble-row{display:flex; flex-direction:column; align-items:flex-start;}
-  .bubble{
-    background:var(--paper); color:var(--ink); padding:10px 14px;
-    border-radius:4px var(--radius-sm) var(--radius-sm) var(--radius-sm);
-    font-size:12.8px; max-width:92%; line-height:1.5;
-    border-left:3px solid var(--coral);
-    box-shadow:var(--shadow-card);
-  }
-  .bubble b{font-weight:700; color:var(--navy-1);}
-  .bubble-time{font-size:10px; color:var(--muted); margin-top:3px; margin-left:2px; font-family:'IBM Plex Mono',monospace;}
 
   /* ---------- Cart items ---------- */
   .cart-item{
@@ -314,7 +307,8 @@
   .field-label{font-size:12.5px; font-weight:700; margin:15px 0 6px; color:var(--ink);}
   .field-input{
     width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid var(--line);
-    font-size:14px; font-family:inherit; background:#FAF6EA;
+    /* 16px stops iOS Safari from auto-zooming the page when the field gets focus */
+    font-size:16px; font-family:inherit; background:#FAF6EA; touch-action:manipulation;
   }
   .field-input:focus{outline:none; border-color:var(--navy-2);}
   .opt-row{display:flex; gap:8px; flex-wrap:wrap;}
@@ -513,7 +507,6 @@
   <!-- ================= CART VIEW (persistent panel on desktop) ================= -->
   <div class="view" id="view-cart">
     <div class="cartpanel-heading"><h3>🎫 ตั๋วที่กำลังสั่ง</h3><span id="cartCountLbl"></span></div>
-    <div class="chatlog" id="chatlog"></div>
     <div id="cartList"></div>
     <div id="cartFooter"></div>
   </div>
@@ -619,7 +612,6 @@ const TYPE_LABELS = { hot: "ร้อน", cold: "เย็น", blend: "ปั�
 
 /* ====================== STATE ====================== */
 let cart = [];          // ยังไม่ส่ง — each item has a unique localId
-let chatEvents = [];    // ตั๋ว/ข้อความในตะกร้า — each carries the SAME localId as its cart item
 let todayOrders = [];   // ข้อมูลที่ส่งไปแล้ว (จาก sheet)
 let currentItem = null;
 let currentSelSweet = SWEET_OPTS[0];
@@ -887,30 +879,13 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
   cart.push(entry);
   // ผูกตั๋ว/ข้อความเข้ากับ localId เดียวกับรายการในตะกร้า
   // เพื่อให้ลบรายการแล้วข้อความที่แสดงหายไปด้วย
-  chatEvents.push({localId, who:orderer, text: buildOrderText(entry), time: nowTimeLabel()});
   renderCart();
   updateCartBadge();
   showToast(`เพิ่ม ${currentItem.name}${qty>1?(' x'+qty):''} ให้คุณ${orderer} แล้ว`);
   closeModal();
 });
 
-function buildOrderText(e){
-  const qtyTxt = (e.qty && e.qty>1) ? ` x${e.qty}` : '';
-  let parts = [`<b>${e.name}</b> สั่ง ${e.menu}${qtyTxt}`];
-  if(e.typeLabel) parts.push(e.typeLabel);
-  if(e.sweet) parts.push(e.sweet);
-  if(e.note) parts.push('("' + e.note + '")');
-  return parts.join(' · ');
-}
-function updateChatTextFor(localId){
-  const it = cart.find(c=>c.localId===localId);
-  const ev = chatEvents.find(c=>c.localId===localId);
-  if(it && ev){ ev.text = buildOrderText(it); }
-}
-function nowTimeLabel(){
-  const d = new Date();
-  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-}
+
 
 /* ====================== TOAST ====================== */
 let toastTimer;
@@ -928,26 +903,14 @@ function cartTotalQty(){
 }
 
 function renderCart(){
-  const chatlogEl = document.getElementById('chatlog');
   const countLbl = document.getElementById('cartCountLbl');
   const totalQty = cartTotalQty();
   countLbl.textContent = totalQty > 0 ? totalQty + ' แก้ว' : '';
 
-  if(chatEvents.length===0){
-    chatlogEl.innerHTML = `<div class="chatlog-empty">ยังไม่มีตั๋วในตะกร้า เลือกเมนูจากแท็บ "สั่งเครื่องดื่ม" ได้เลย</div>`;
-  } else {
-    chatlogEl.innerHTML = chatEvents.map(ev=>`
-      <div class="bubble-row" data-id="${ev.localId}">
-        <div class="bubble">${ev.text}</div>
-        <div class="bubble-time">${ev.time}</div>
-      </div>
-    `).join('');
-  }
-
   const listEl = document.getElementById('cartList');
   const footEl = document.getElementById('cartFooter');
   if(cart.length===0){
-    listEl.innerHTML = '';
+    listEl.innerHTML = `<div class="chatlog-empty">ยังไม่มีรายการในตะกร้า เลือกเมนูจากแท็บ "สั่งเครื่องดื่ม" ได้เลย</div>`;
     footEl.innerHTML = '';
     return;
   }
@@ -988,22 +951,18 @@ function renderCart(){
         if(cur <= 1){
           // ลดจาก 1 แก้ว = เอารายการนี้ออกจากตะกร้าเลย
           cart = cart.filter(c=>c.localId !== id);
-          chatEvents = chatEvents.filter(ev=>ev.localId !== id);
           renderCart(); updateCartBadge();
           return;
         }
         it.qty = cur - 1;
       }
-      updateChatTextFor(id);
       renderCart(); updateCartBadge();
     });
   });
   listEl.querySelectorAll('.ci-del').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const id = btn.dataset.id;
-      // ลบทั้งรายการในตะกร้า และตั๋ว/ข้อความที่ผูกกับรายการนั้น (localId เดียวกัน)
       cart = cart.filter(c=>c.localId !== id);
-      chatEvents = chatEvents.filter(ev=>ev.localId !== id);
       renderCart(); updateCartBadge();
     });
   });
@@ -1055,7 +1014,7 @@ async function submitCart(){
     const data = await res.json();
     if(!data.ok) throw new Error(data.error || 'unknown error');
     showToast(`ส่งคำสั่งซื้อ ${rows.length} แก้วเรียบร้อย ✅`);
-    cart = []; chatEvents = [];
+    cart = [];
     renderCart(); updateCartBadge();
     await loadToday();
     switchView('summary');
