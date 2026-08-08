@@ -340,10 +340,13 @@
     position:absolute; inset:0; z-index:1;
     display:flex; align-items:center; justify-content:center;
   }
-  .op-photo-wrap img{
-    width:100%; height:100%; object-fit:cover; display:block;
+  .op-photo-emoji{
+    width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+    font-size:60px;
   }
-  .op-photo-emoji{font-size:60px;}
+  .op-photo-wrap img{
+    width:100%; height:100%; object-fit:cover; object-position:top; display:block;
+  }
   /* soft gradient over the photo so the top controls stay readable on any image */
   .op-hero::after{
     content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
@@ -619,7 +622,7 @@ let MENU = [];
 let menuLoaded = false;
 let menuLoadFailed = false;
 
-const SWEET_OPTS = ["หวานปกติ","หวานน้อย","ไม่หวาน","หวานมาก"];
+const SWEET_OPTS = ["หวานปกติ (100%)","หวานน้อย (50%)","หวานน้อยมาก (25%)","ไม่หวาน (0%)"];
 const ICE_OPTS = ["น้ำแข็งปกติ","น้ำแข็งน้อย","ไม่ใส่น้ำแข็ง"];
 // ป้ายภาษาไทยของแต่ละชนิด ใช้แสดงบนปุ่มเลือกในหน้าต่างสั่ง และในตะกร้า/ข้อความตั๋ว
 const TYPE_LABELS = { hot: "ร้อน", cold: "เย็น", blend: "ปั่น" };
