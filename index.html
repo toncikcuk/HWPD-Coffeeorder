@@ -8,28 +8,33 @@
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
+  /* ============================================================
+     TOKEN SYSTEM — "late-night coffee counter, meeting-room edition"
+     navy = the briefing room, coral = the order ticket stamped on top
+     ============================================================ */
   :root{
-    /* ---- token system: "specialty coffee counter / order ticket board" ---- */
-    --ink:#241A12;
-    --forest:#0D3323;
-    --forest-2:#1C5C41;
-    --forest-tint:#E6EFE7;
-    --parchment:#FBF4E5;
-    --paper-2:#EFE3C7;
-    --amber:#C1852E;
-    --amber-deep:#93611F;
-    --amber-soft:#F4E1B4;
-    --rust:#9C4426;
-    --line-dash:#CBB587;
-    --white:#ffffff;
-    --card:#FFFDF8;
-    --radius-lg:28px;
-    --radius-md:18px;
-    --radius-sm:11px;
-    --shadow-glass:0 14px 38px rgba(13,51,35,0.18);
-    --shadow-card:0 4px 16px rgba(36,26,18,0.07);
-    --ease-ios:cubic-bezier(.36,.66,.04,1);
-    --header-h:78px;
+    --navy-1:#122B38;
+    --navy-2:#1E4256;
+    --navy-3:#2A5670;
+    --coral:#EA6C42;
+    --coral-deep:#C94F27;
+    --coral-tint:#FBE3D6;
+    --cream:#F6F1E6;
+    --paper:#FFFFFF;
+    --ink:#1B2A31;
+    --muted:#7C8C93;
+    --line:#E9E0CC;
+    --sky-tint:#E3EEF3;
+    --sky:#3E7B92;
+    --shadow-soft:0 10px 28px rgba(18,43,56,0.10);
+    --shadow-card:0 4px 14px rgba(18,43,56,0.08);
+    --shadow-pop:0 16px 34px rgba(18,43,56,0.20);
+    --radius-xl:26px;
+    --radius-lg:20px;
+    --radius-md:15px;
+    --radius-sm:10px;
+    --ease:cubic-bezier(.32,.72,.14,1);
+    --header-h:150px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html{scroll-behavior:smooth;}
@@ -37,9 +42,9 @@
   body{
     font-family:'IBM Plex Sans Thai','Prompt',sans-serif;
     background:
-      radial-gradient(circle at 10% 6%, rgba(28,92,65,0.12), transparent 42%),
-      radial-gradient(circle at 90% 94%, rgba(193,133,46,0.12), transparent 42%),
-      #E7E0C9;
+      radial-gradient(circle at 8% 0%, rgba(30,66,86,0.10), transparent 45%),
+      radial-gradient(circle at 100% 100%, rgba(234,108,66,0.10), transparent 45%),
+      var(--cream);
     color:var(--ink);
     min-height:100vh;
     display:flex;
@@ -49,244 +54,212 @@
   h1,h2,h3,.display{font-family:'Prompt',sans-serif;}
   .num{font-family:'IBM Plex Mono',monospace;}
 
-  /* perforation motif — signature ticket-stub element reused across cards/receipts */
-  .perf-edge{
-    height:13px;
-    background:radial-gradient(circle at 7px 0, transparent 6px, var(--forest) 6px) top/14px 13px repeat-x;
-  }
-  .perf-edge.light{
-    background:radial-gradient(circle at 7px 0, transparent 6px, var(--card) 6px) top/14px 13px repeat-x;
-  }
-
   /* ================= APP SHELL ================= */
   #app{
     width:100%;
-    max-width:520px;
+    max-width:460px;
     min-height:100vh;
-    background:var(--parchment);
+    background:var(--cream);
     position:relative;
-    box-shadow:var(--shadow-glass);
+    box-shadow:var(--shadow-soft);
     display:flex;
     flex-direction:column;
   }
   @media(min-width:560px) and (max-width:1023px){
-    body{padding:28px 12px;}
-    #app{min-height:calc(100vh - 56px); border-radius:var(--radius-lg); overflow:hidden;}
+    body{padding:30px 12px;}
+    #app{min-height:calc(100vh - 60px); border-radius:32px; overflow:hidden;}
   }
 
-  /* ---------- Header (counter signage) ---------- */
+  /* ---------- Header (navy briefing card) ---------- */
   .appbar{
-    background:
-      repeating-linear-gradient(115deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 26px),
-      linear-gradient(135deg,var(--forest),var(--forest-2) 78%);
+    background:linear-gradient(150deg,var(--navy-1),var(--navy-2) 70%,var(--navy-3));
     color:#fff;
-    padding:calc(16px + env(safe-area-inset-top)) 18px 16px;
+    padding:calc(20px + env(safe-area-inset-top)) 20px 26px;
+    border-radius:0 0 30px 30px;
     position:sticky; top:0; z-index:30;
+    box-shadow:0 12px 24px rgba(18,43,56,0.22);
   }
-  .appbar-row{display:flex; align-items:center; gap:12px;}
+  .appbar-eyebrow{font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:2px; text-transform:uppercase; color:#9FC1CF; margin-bottom:4px;}
+  .appbar-row{display:flex; align-items:center; gap:13px;}
   .appbar-avatar{
-    width:46px;height:46px;border-radius:50%;
-    background:linear-gradient(145deg,var(--amber),var(--amber-deep));
+    width:48px;height:48px;border-radius:16px;
+    background:linear-gradient(160deg,var(--coral),var(--coral-deep));
     display:flex;align-items:center;justify-content:center;
-    font-size:21px; flex-shrink:0;
-    box-shadow:inset 0 0 0 2px rgba(255,255,255,0.45), 0 4px 12px rgba(0,0,0,0.22);
+    font-size:22px; flex-shrink:0;
+    box-shadow:0 6px 14px rgba(201,79,39,0.4);
   }
-  .appbar-title{font-weight:700; font-size:18px; line-height:1.2; letter-spacing:.2px;}
-  .appbar-sub{font-size:11.5px; opacity:0.82; margin-top:3px; letter-spacing:.3px;}
+  .appbar-title{font-weight:700; font-size:19px; line-height:1.2; letter-spacing:.1px;}
+  .appbar-sub{font-size:12px; opacity:0.75; margin-top:3px;}
   .appbar-date{
-    margin-left:auto; font-size:11px; background:rgba(255,255,255,0.15);
-    padding:6px 12px; border-radius:100px; white-space:nowrap;
-    font-family:'IBM Plex Mono',monospace; border:1px solid rgba(255,255,255,0.18);
+    margin-left:auto; font-size:11px; background:rgba(255,255,255,0.12);
+    padding:7px 13px; border-radius:100px; white-space:nowrap;
+    font-family:'IBM Plex Mono',monospace; border:1px solid rgba(255,255,255,0.16);
+    flex-shrink:0;
   }
 
-  /* ---------- Category bar — "order counter" queue tabs, always floats ---------- */
+  /* ---------- Category chips ---------- */
   .chips{
-    display:flex; gap:6px; overflow-x:auto; padding:10px; margin:0 14px;
-    background:rgba(239,230,208,0.88);
-    backdrop-filter:blur(12px) saturate(160%);
-    -webkit-backdrop-filter:blur(12px) saturate(160%);
-    border-radius:100px;
-    position:sticky; top:var(--header-h); z-index:20;
+    display:flex; gap:8px; overflow-x:auto; padding:4px 2px 2px;
     scrollbar-width:none;
-    border:1px solid rgba(203,181,135,0.55);
-    box-shadow:0 6px 18px rgba(13,51,35,0.09);
   }
   .chips::-webkit-scrollbar{display:none;}
-  .chip{
-    flex-shrink:0; padding:8px 15px; border-radius:100px; font-size:12.5px;
-    background:transparent; border:none; color:var(--forest);
-    font-weight:600; cursor:pointer; transition:.22s var(--ease-ios);
-    display:flex; align-items:center; gap:6px; opacity:0.62;
+  .chips-wrap{
+    position:sticky; top:var(--header-h); z-index:20;
+    background:linear-gradient(var(--cream) 78%, rgba(246,241,230,0));
+    padding:12px 16px 10px;
+    margin:0 -16px;
   }
-  .chip.active{background:var(--forest); color:#fff; opacity:1; box-shadow:0 3px 12px rgba(13,51,35,0.34);}
-
-  .chips-spacer{height:16px;}
+  .chip{
+    flex-shrink:0; padding:9px 16px; border-radius:100px; font-size:12.5px;
+    background:var(--paper); border:1px solid var(--line); color:var(--navy-2);
+    font-weight:600; cursor:pointer; transition:.22s var(--ease);
+    display:flex; align-items:center; gap:6px;
+  }
+  .chip.active{background:var(--coral); border-color:var(--coral); color:#fff; box-shadow:0 6px 14px rgba(234,108,66,0.35);}
 
   /* ---------- Views ---------- */
-  .view{display:none; padding:0 14px 14px; padding-bottom:calc(64px + 56px); flex:1;}
+  .view{display:none; padding:0 16px 14px; padding-bottom:calc(72px + 60px); flex:1;}
   .view.active{display:block;}
 
-  /* ---------- Category banner (no photo — clean label bar) ---------- */
-  .cat-banner{
-    position:relative; border-radius:20px; overflow:hidden;
-    margin:22px 0 14px; box-shadow:var(--shadow-card);
-    background:linear-gradient(135deg,var(--forest-tint),#F1F6EF);
-    border:1px solid rgba(203,181,135,0.5);
-  }
-  .cat-banner:first-of-type{margin-top:16px;}
-  .cat-banner-label{
-    display:flex; align-items:center; gap:11px; padding:15px 16px;
-  }
-  .cat-banner-label .icon-badge{
-    width:40px; height:40px; border-radius:50%; flex-shrink:0;
-    background:linear-gradient(160deg,#fff,var(--forest-tint));
-    display:flex; align-items:center; justify-content:center; font-size:19px;
-    box-shadow:inset 0 0 0 1px rgba(13,51,35,0.12), 0 2px 6px rgba(13,51,35,0.08);
-  }
-  .cat-banner-label .eyebrow{
-    font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
-    color:#6f7e6d;
-  }
-  .cat-banner-label h2{margin:1px 0 0; font-size:16px; font-weight:700; font-family:'Prompt',sans-serif; color:var(--forest);}
+  /* ---------- Category banner ---------- */
+  .cat-banner{display:flex; align-items:center; gap:10px; margin:18px 2px 12px;}
+  .cat-banner .dot{width:8px;height:8px;border-radius:3px;background:var(--coral);}
+  .cat-banner h2{margin:0; font-size:16px; font-weight:700; color:var(--navy-1);}
+  .cat-banner .count{margin-left:auto; font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace;}
 
-  .cat-heading{
-    font-size:13.5px; font-weight:700; color:var(--forest); margin:16px 4px 10px;
-    scroll-margin-top:150px; display:none; /* replaced visually by cat-banner label */
-  }
-
-  .menu-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;}
+  .menu-grid{display:grid; grid-template-columns:1fr 1fr; gap:13px;}
   .menu-card{
-    background:var(--card);
-    border:1px solid rgba(203,181,135,0.5);
-    border-radius:var(--radius-md);
-    padding:14px 13px 12px;
+    background:var(--paper);
+    border-radius:var(--radius-lg);
+    padding:10px 10px 12px;
     box-shadow:var(--shadow-card);
-    display:flex; flex-direction:column; gap:7px;
-    cursor:pointer; transition:transform .18s var(--ease-ios), box-shadow .18s var(--ease-ios), border-color .18s;
-    position:relative; overflow:hidden;
+    display:flex; flex-direction:column; gap:8px;
+    cursor:pointer; transition:transform .18s var(--ease), box-shadow .18s var(--ease);
+    position:relative;
   }
-  .menu-card::before{
-    content:""; position:absolute; top:0; left:0; right:0; height:4px;
-    background:linear-gradient(90deg,var(--amber),var(--forest-2));
-    opacity:0; transition:opacity .2s var(--ease-ios);
-  }
-  .menu-card:hover{box-shadow:0 12px 26px rgba(36,26,18,0.14); transform:translateY(-3px); border-color:var(--amber);}
-  .menu-card:hover::before{opacity:1;}
+  .menu-card:hover{box-shadow:var(--shadow-pop); transform:translateY(-3px);}
   .menu-card:active{transform:scale(0.96);}
-  .menu-icon{
-    width:44px;height:44px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center; font-size:21px;
-    background:linear-gradient(160deg,var(--forest-tint),#DCEBDD);
-    box-shadow:inset 0 0 0 1px rgba(13,51,35,0.1);
+  .menu-photo{
+    width:100%; aspect-ratio:1/0.82; border-radius:var(--radius-md); overflow:hidden;
+    background:linear-gradient(160deg,var(--sky-tint),#EAF3F1);
+    display:flex; align-items:center; justify-content:center; font-size:34px; position:relative;
   }
-  .menu-icon.cold{background:linear-gradient(160deg,#E4EFF4,#D3E6ED);}
-  .menu-icon.blend{background:linear-gradient(160deg,var(--amber-soft),#EBD198);}
-  .menu-name{font-size:13.5px; font-weight:600; line-height:1.3;}
-  .menu-price{font-size:12.5px; color:var(--forest-2); font-weight:700;}
+  .menu-photo img{width:100%; height:100%; object-fit:cover; display:block;}
+  .menu-photo.hot{background:linear-gradient(160deg,#F2E4D8,var(--coral-tint));}
+  .menu-photo.blend{background:linear-gradient(160deg,#EAF2E9,#DCEBDD);}
+  .menu-name{font-size:13px; font-weight:600; line-height:1.3; padding:0 2px;}
+  .menu-price{font-size:12.5px; color:var(--navy-2); font-weight:700; padding:0 2px; font-family:'IBM Plex Mono',monospace;}
   .menu-add{
-    margin-top:auto; align-self:flex-end;
-    font-size:11.5px; color:var(--amber-deep); font-weight:700;
-    display:flex; align-items:center; gap:3px;
+    position:absolute; right:8px; bottom:8px;
+    width:30px; height:30px; border-radius:50%;
+    background:linear-gradient(160deg,var(--coral),var(--coral-deep));
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:17px; font-weight:700; box-shadow:0 6px 14px rgba(201,79,39,0.38);
   }
 
-  /* ---------- Cart panel heading (order tickets) ---------- */
-  .cartpanel-heading{
-    display:flex; align-items:center; justify-content:space-between;
-    margin:16px 4px 10px;
+  .menu-skeleton{display:grid; grid-template-columns:1fr 1fr; gap:13px; margin-top:18px;}
+  .sk-card{background:var(--paper); border-radius:var(--radius-lg); padding:10px; box-shadow:var(--shadow-card);}
+  .sk-photo{aspect-ratio:1/0.82; border-radius:var(--radius-md); background:linear-gradient(90deg,#EFE8D6,#F7F2E5,#EFE8D6); background-size:200% 100%; animation:shimmer 1.3s infinite;}
+  .sk-line{height:9px; border-radius:5px; margin-top:9px; background:linear-gradient(90deg,#EFE8D6,#F7F2E5,#EFE8D6); background-size:200% 100%; animation:shimmer 1.3s infinite;}
+  .sk-line.w60{width:60%;}
+  @keyframes shimmer{0%{background-position:200% 0;} 100%{background-position:-200% 0;}}
+
+  .menu-error{
+    text-align:center; padding:32px 18px; color:var(--muted); font-size:12.5px;
+    background:var(--paper); border-radius:var(--radius-lg); margin-top:16px; border:1.5px dashed var(--line);
   }
-  .cartpanel-heading h3{font-size:15px; margin:0; color:var(--forest); font-weight:700; display:flex; align-items:center; gap:7px;}
-  .cartpanel-heading span{font-size:11px; color:#8a7c65; font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- Cart panel heading ---------- */
+  .cartpanel-heading{display:flex; align-items:center; justify-content:space-between; margin:18px 2px 12px;}
+  .cartpanel-heading h3{font-size:15.5px; margin:0; color:var(--navy-1); font-weight:700; display:flex; align-items:center; gap:7px;}
+  .cartpanel-heading span{font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace; background:var(--coral-tint); padding:4px 10px; border-radius:100px;}
 
   .chatlog{margin-bottom:16px; display:flex; flex-direction:column; gap:8px;}
   .chatlog-empty{
-    text-align:center; color:#8a7c65; font-size:12.5px;
-    padding:22px 14px; background:rgba(255,255,255,0.65); border:1.5px dashed var(--line-dash);
-    border-radius:var(--radius-md);
+    text-align:center; color:var(--muted); font-size:12.5px;
+    padding:24px 14px; background:var(--paper); border:1.5px dashed var(--line);
+    border-radius:var(--radius-lg);
   }
   .bubble-row{display:flex; flex-direction:column; align-items:flex-start;}
   .bubble{
-    background:var(--card); color:var(--ink); padding:10px 14px 10px 13px;
+    background:var(--paper); color:var(--ink); padding:10px 14px;
     border-radius:4px var(--radius-sm) var(--radius-sm) var(--radius-sm);
     font-size:12.8px; max-width:92%; line-height:1.5;
-    border-left:3px solid var(--amber);
+    border-left:3px solid var(--coral);
     box-shadow:var(--shadow-card);
   }
-  .bubble b{font-weight:700; color:var(--forest);}
-  .bubble-time{font-size:10px; color:#a3937a; margin-top:3px; margin-left:2px; font-family:'IBM Plex Mono',monospace;}
+  .bubble b{font-weight:700; color:var(--navy-1);}
+  .bubble-time{font-size:10px; color:var(--muted); margin-top:3px; margin-left:2px; font-family:'IBM Plex Mono',monospace;}
 
-  /* ---------- Cart items — ticket stub shape ---------- */
+  /* ---------- Cart items ---------- */
   .cart-item{
-    display:flex; gap:10px; align-items:center; background:var(--card); border-radius:var(--radius-md);
-    padding:11px 13px; margin-bottom:8px; border:1px solid var(--paper-2);
-    position:relative;
+    display:flex; gap:10px; align-items:center; background:var(--paper); border-radius:var(--radius-lg);
+    padding:10px 12px; margin-bottom:8px; border:1px solid var(--line);
   }
-  .cart-item::before{
-    content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
-    background:repeating-linear-gradient(180deg, var(--forest-2) 0 5px, transparent 5px 10px);
-    border-radius:3px 0 0 3px;
+  .cart-item .ci-icon{
+    width:38px;height:38px;border-radius:12px;background:var(--sky-tint);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;overflow:hidden;
   }
-  .cart-item .ci-icon{width:36px;height:36px;border-radius:50%;background:var(--forest-tint);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .cart-item .ci-icon img{width:100%; height:100%; object-fit:cover;}
   .cart-item .ci-info{flex:1; min-width:0;}
   .ci-name{font-size:13px; font-weight:600;}
-  .ci-meta{font-size:11.5px; color:#8a7c65; margin-top:2px;}
-  .ci-price{font-size:13px; font-weight:700; color:var(--forest-2); flex-shrink:0; font-family:'IBM Plex Mono',monospace;}
+  .ci-meta{font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .ci-price{font-size:13px; font-weight:700; color:var(--navy-2); flex-shrink:0; font-family:'IBM Plex Mono',monospace;}
   .ci-del{
-    background:none; border:none; color:var(--rust); font-size:17px; cursor:pointer; padding:4px 6px; flex-shrink:0;
+    background:none; border:none; color:var(--coral-deep); font-size:17px; cursor:pointer; padding:4px 6px; flex-shrink:0;
     border-radius:50%; transition:background .15s;
   }
-  .ci-del:hover{background:rgba(156,68,38,0.1);}
-  .cart-empty{text-align:center; padding:40px 20px; color:#8a7c65;}
-  .cart-empty .big{font-size:34px; margin-bottom:8px;}
+  .ci-del:hover{background:var(--coral-tint);}
+  .cart-empty{text-align:center; padding:40px 20px; color:var(--muted);}
 
   .cart-summary-bar{
     display:flex; justify-content:space-between; align-items:center;
-    padding:14px 4px; margin-top:6px; border-top:1.5px dashed var(--line-dash); font-weight:700;
+    padding:14px 4px; margin-top:6px; border-top:1.5px dashed var(--line); font-weight:700;
   }
-  .cart-summary-bar .num{color:var(--forest); font-size:16px;}
+  .cart-summary-bar .num{color:var(--navy-1); font-size:16px;}
 
   .btn{
     display:block; width:100%; text-align:center; border:none; border-radius:100px;
     padding:14px; font-size:14.5px; font-weight:700; cursor:pointer; font-family:'Prompt',sans-serif;
-    transition:transform .15s var(--ease-ios), opacity .15s var(--ease-ios), box-shadow .15s;
+    transition:transform .15s var(--ease), opacity .15s var(--ease), box-shadow .15s;
     letter-spacing:.2px;
   }
   .btn:active{transform:scale(0.97);}
-  .btn-primary{background:linear-gradient(135deg,var(--forest),var(--forest-2)); color:#fff; box-shadow:0 8px 18px rgba(13,51,35,0.3);}
-  .btn-primary:disabled{background:#b7b09b; cursor:not-allowed; box-shadow:none;}
-  .btn-secondary{background:var(--amber-soft); color:var(--ink);}
-  .btn-outline{background:#fff; color:var(--forest); border:1.5px solid var(--forest);}
+  .btn-primary{background:linear-gradient(135deg,var(--coral),var(--coral-deep)); color:#fff; box-shadow:0 10px 20px rgba(201,79,39,0.32);}
+  .btn-primary:disabled{background:#C9BFA9; cursor:not-allowed; box-shadow:none;}
+  .btn-secondary{background:var(--sky-tint); color:var(--navy-1);}
+  .btn-outline{background:#fff; color:var(--navy-1); border:1.5px solid var(--navy-2);}
 
   /* ---------- Summary / receipt ---------- */
-  .subtabs{display:flex; gap:8px; margin:16px 0 14px;}
-  .subtab{flex:1; text-align:center; padding:9px; border-radius:100px; font-size:12.5px; font-weight:700; background:#fff; border:1px solid var(--paper-2); cursor:pointer; color:#8a7c65; transition:.2s var(--ease-ios);}
-  .subtab.active{background:var(--forest); color:#fff; border-color:var(--forest);}
+  .subtabs{display:flex; gap:8px; margin:18px 0 14px;}
+  .subtab{flex:1; text-align:center; padding:9px; border-radius:100px; font-size:12.5px; font-weight:700; background:var(--paper); border:1px solid var(--line); cursor:pointer; color:var(--muted); transition:.2s var(--ease);}
+  .subtab.active{background:var(--navy-1); color:#fff; border-color:var(--navy-1);}
 
-  .receipt-wrap{background:transparent; padding:6px 0 18px;}
+  .receipt-wrap{padding:6px 0 18px;}
   .receipt{
-    background:var(--card); border-radius:16px; position:relative; overflow:hidden;
-    box-shadow:0 16px 36px rgba(36,26,18,0.18);
+    background:var(--paper); border-radius:var(--radius-xl); position:relative; overflow:hidden;
+    box-shadow:var(--shadow-pop);
   }
   .receipt-top{
-    background:linear-gradient(135deg,var(--forest),var(--forest-2) 80%);
-    color:#fff; padding:20px 20px 16px; position:relative;
+    background:linear-gradient(150deg,var(--navy-1),var(--navy-2) 80%);
+    color:#fff; padding:22px 20px 18px; position:relative;
   }
   .receipt-top h3{margin:0; font-size:16.5px; font-family:'Prompt',sans-serif;}
-  .receipt-top .sub{font-size:11.5px; opacity:0.82; margin-top:4px; font-family:'IBM Plex Mono',monospace;}
-  .receipt-body{padding:6px 20px 4px;}
-  .receipt-row{display:flex; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px dashed #e2d5b0; font-size:13px;}
+  .receipt-top .sub{font-size:11.5px; opacity:0.78; margin-top:4px; font-family:'IBM Plex Mono',monospace;}
+  .receipt-body{padding:8px 20px 4px;}
+  .receipt-row{display:flex; justify-content:space-between; gap:10px; padding:11px 0; border-bottom:1px dashed var(--line); font-size:13px;}
   .receipt-row:last-child{border-bottom:none;}
   .rr-left{flex:1;}
   .rr-name{font-weight:600;}
-  .rr-meta{font-size:11px; color:#8a7c65; margin-top:2px;}
-  .rr-price{font-weight:700; white-space:nowrap; font-family:'IBM Plex Mono',monospace; color:var(--forest-2);}
+  .rr-meta{font-size:11px; color:var(--muted); margin-top:2px;}
+  .rr-price{font-weight:700; white-space:nowrap; font-family:'IBM Plex Mono',monospace; color:var(--navy-2);}
   .receipt-total{
-    display:flex; justify-content:space-between; padding:15px 20px 20px; font-weight:700; font-size:15.5px;
-    background:var(--amber-soft); margin-top:6px; font-family:'Prompt',sans-serif;
+    display:flex; justify-content:space-between; padding:16px 20px 22px; font-weight:700; font-size:15.5px;
+    background:var(--coral-tint); margin-top:6px; font-family:'Prompt',sans-serif; color:var(--navy-1);
   }
   .receipt-total .num{font-family:'IBM Plex Mono',monospace;}
-  .receipt-foot{text-align:center; font-size:10.5px; color:#a3937a; padding:10px 0 16px;}
+  .receipt-foot{text-align:center; font-size:10.5px; color:var(--muted); padding:10px 0 16px;}
 
-  .empty-state{text-align:center; padding:50px 20px; color:#8a7c65;}
+  .empty-state{text-align:center; padding:52px 20px; color:var(--muted);}
   .empty-state .big{font-size:36px; margin-bottom:10px;}
   .empty-state .t{font-weight:700; color:var(--ink); margin-bottom:4px; font-size:14px; font-family:'Prompt',sans-serif;}
 
@@ -294,91 +267,93 @@
   .bottomnav{
     position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom));
     transform:translateX(-50%);
-    width:calc(100% - 32px); max-width:460px;
-    display:flex; gap:2px; padding:6px; z-index:40;
-    background:rgba(251,244,229,0.84);
-    backdrop-filter:blur(22px) saturate(180%);
-    -webkit-backdrop-filter:blur(22px) saturate(180%);
-    border:1px solid rgba(255,255,255,0.6);
-    border-radius:22px;
-    box-shadow:0 14px 34px rgba(13,51,35,0.24), 0 2px 8px rgba(0,0,0,0.06);
+    width:calc(100% - 32px); max-width:428px;
+    display:flex; gap:2px; padding:8px 8px; z-index:40;
+    background:rgba(18,43,56,0.94);
+    backdrop-filter:blur(18px) saturate(160%);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);
+    border-radius:26px;
+    box-shadow:0 16px 34px rgba(18,43,56,0.32);
   }
   .navbtn{
-    flex:1; text-align:center; padding:9px 4px 7px; background:none; border:none; cursor:pointer;
-    color:#8a7c65; font-family:'Prompt',sans-serif; position:relative;
-    border-radius:16px; transition:background .22s var(--ease-ios), color .22s var(--ease-ios);
+    flex:1; text-align:center; padding:9px 4px 8px; background:none; border:none; cursor:pointer;
+    color:rgba(255,255,255,0.55); font-family:'Prompt',sans-serif; position:relative;
+    border-radius:18px; transition:background .22s var(--ease), color .22s var(--ease);
   }
-  .navbtn .icon{font-size:18px; display:block;}
-  .navbtn .lbl{font-size:10.5px; margin-top:2px; font-weight:600;}
-  .navbtn.active{color:var(--white); background:linear-gradient(135deg,var(--forest),var(--forest-2));}
+  .navbtn .icon-wrap{
+    width:30px; height:30px; border-radius:10px; margin:0 auto; display:flex; align-items:center; justify-content:center;
+    transition:.22s var(--ease); font-size:16px;
+  }
+  .navbtn .lbl{font-size:10px; margin-top:3px; font-weight:600; display:block;}
+  .navbtn.active{color:#fff;}
+  .navbtn.active .icon-wrap{background:linear-gradient(160deg,var(--coral),var(--coral-deep)); box-shadow:0 6px 14px rgba(201,79,39,0.5); transform:translateY(-2px);}
   .navbadge{
-    position:absolute; top:2px; right:calc(50% - 22px); background:var(--rust); color:#fff;
+    position:absolute; top:0px; right:calc(50% - 22px); background:var(--coral); color:#fff;
     font-size:9.5px; min-width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; padding:0 3px;
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'IBM Plex Mono',monospace; border:2px solid var(--navy-1);
   }
 
   /* ---------- Modal ---------- */
   .modal-backdrop{
-    position:fixed; inset:0; background:rgba(13,20,15,0.52); z-index:100;
+    position:fixed; inset:0; background:rgba(18,29,35,0.55); z-index:100;
     backdrop-filter:blur(3px);
     display:none; align-items:flex-end; justify-content:center;
   }
   .modal-backdrop.open{display:flex;}
   .modal-sheet{
-    background:#fff; width:100%; max-width:480px; border-radius:24px 24px 0 0;
-    padding:20px 20px calc(22px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto;
-    animation:slideup .28s var(--ease-ios);
+    background:#fff; width:100%; max-width:460px; border-radius:28px 28px 0 0;
+    padding:22px 20px calc(22px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto;
+    animation:slideup .28s var(--ease);
   }
   @keyframes slideup{from{transform:translateY(40px); opacity:0;} to{transform:translateY(0); opacity:1;}}
   .modal-head{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
-  .modal-icon{width:50px;height:50px;border-radius:50%;background:var(--forest-tint);display:flex;align-items:center;justify-content:center;font-size:25px;}
+  .modal-icon{width:54px;height:54px;border-radius:16px;background:var(--sky-tint);display:flex;align-items:center;justify-content:center;font-size:25px;overflow:hidden;}
+  .modal-icon img{width:100%; height:100%; object-fit:cover;}
   .modal-title{font-size:16.5px; font-weight:700; font-family:'Prompt',sans-serif;}
-  .modal-price{font-size:13px; color:var(--forest-2); font-weight:700; margin-top:2px; font-family:'IBM Plex Mono',monospace;}
-  .field-label{font-size:12.5px; font-weight:700; margin:14px 0 6px; color:var(--ink);}
+  .modal-price{font-size:13px; color:var(--navy-2); font-weight:700; margin-top:2px; font-family:'IBM Plex Mono',monospace;}
+  .field-label{font-size:12.5px; font-weight:700; margin:15px 0 6px; color:var(--ink);}
   .field-input{
-    width:100%; padding:12px 14px; border-radius:12px; border:1.5px solid var(--paper-2);
-    font-size:14px; font-family:inherit; background:#fbf7ec;
+    width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid var(--line);
+    font-size:14px; font-family:inherit; background:#FAF6EA;
   }
-  .field-input:focus{outline:none; border-color:var(--forest-2);}
+  .field-input:focus{outline:none; border-color:var(--navy-2);}
   .opt-row{display:flex; gap:8px; flex-wrap:wrap;}
   .opt-pill{
-    padding:8px 14px; border-radius:100px; border:1.5px solid var(--paper-2); background:#fff;
-    font-size:12.5px; cursor:pointer; color:#8a7c65; font-weight:600; transition:.2s var(--ease-ios);
+    padding:8px 14px; border-radius:100px; border:1.5px solid var(--line); background:#fff;
+    font-size:12.5px; cursor:pointer; color:var(--muted); font-weight:600; transition:.2s var(--ease);
   }
-  .opt-pill.sel{background:var(--forest); border-color:var(--forest); color:#fff;}
-  .modal-actions{display:flex; gap:10px; margin-top:20px;}
+  .opt-pill.sel{background:var(--navy-1); border-color:var(--navy-1); color:#fff;}
+  .modal-actions{display:flex; gap:10px; margin-top:22px;}
 
-  /* ---------- Quantity stepper (modal) ---------- */
   .qty-stepper{
-    display:flex; align-items:center; gap:14px; background:#fbf7ec;
-    border:1.5px solid var(--paper-2); border-radius:100px; padding:6px 8px; width:fit-content;
+    display:flex; align-items:center; gap:14px; background:#FAF6EA;
+    border:1.5px solid var(--line); border-radius:100px; padding:6px 8px; width:fit-content;
   }
   .qty-btn{
     width:34px; height:34px; border-radius:50%; border:none; cursor:pointer;
-    background:var(--forest); color:#fff; font-size:17px; font-weight:700;
-    display:flex; align-items:center; justify-content:center; transition:.15s var(--ease-ios);
+    background:var(--navy-1); color:#fff; font-size:17px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; transition:.15s var(--ease);
   }
   .qty-btn:active{transform:scale(0.9);}
-  .qty-btn.dec{background:#fff; color:var(--forest); border:1.5px solid var(--forest);}
-  .qty-val{min-width:30px; text-align:center; font-size:16px; font-weight:700; font-family:'IBM Plex Mono',monospace; color:var(--ink);}
+  .qty-btn.dec{background:#fff; color:var(--navy-1); border:1.5px solid var(--navy-1);}
+  .qty-val{min-width:30px; text-align:center; font-size:16px; font-weight:700; font-family:'IBM Plex Mono',monospace;}
 
-  /* ---------- Quantity stepper (cart item, compact) ---------- */
   .ci-qty{display:flex; align-items:center; gap:8px; flex-shrink:0;}
   .ci-qty-btn{
-    width:24px; height:24px; border-radius:50%; border:1.5px solid var(--paper-2); background:#fff;
-    color:var(--forest); font-size:14px; font-weight:700; cursor:pointer; line-height:1;
-    display:flex; align-items:center; justify-content:center; transition:.15s var(--ease-ios); flex-shrink:0;
+    width:24px; height:24px; border-radius:50%; border:1.5px solid var(--line); background:#fff;
+    color:var(--navy-1); font-size:14px; font-weight:700; cursor:pointer; line-height:1;
+    display:flex; align-items:center; justify-content:center; transition:.15s var(--ease); flex-shrink:0;
   }
   .ci-qty-btn:active{transform:scale(0.88);}
   .ci-qty-val{min-width:16px; text-align:center; font-size:12.5px; font-weight:700; font-family:'IBM Plex Mono',monospace;}
 
   .toast{
-    position:fixed; bottom:calc(64px + 42px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
-    background:var(--ink); color:#fff; padding:10px 18px; border-radius:100px;
-    font-size:12.5px; z-index:200; opacity:0; pointer-events:none; transition:.28s var(--ease-ios);
-    white-space:nowrap;
+    position:fixed; bottom:calc(64px + 44px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
+    background:var(--navy-1); color:#fff; padding:10px 18px; border-radius:100px;
+    font-size:12.5px; z-index:200; opacity:0; pointer-events:none; transition:.28s var(--ease);
+    white-space:nowrap; box-shadow:0 10px 24px rgba(18,43,56,0.35);
   }
-  .toast.show{opacity:1; bottom:calc(64px + 52px + env(safe-area-inset-bottom));}
+  .toast.show{opacity:1; bottom:calc(64px + 54px + env(safe-area-inset-bottom));}
 
   .save-btn-row{display:flex; gap:10px; padding:0 0 14px;}
 
@@ -393,29 +368,29 @@
       overflow-y:auto;
       overflow-x:hidden;
       display:grid;
-      grid-template-columns:1fr 390px;
-      grid-template-rows:auto auto 1fr;
-      border-radius:var(--radius-lg);
-      box-shadow:0 28px 68px rgba(13,51,35,0.22);
+      grid-template-columns:1fr 400px;
+      grid-template-rows:auto 1fr;
+      border-radius:32px;
+      box-shadow:0 30px 70px rgba(18,43,56,0.24);
     }
-    .appbar{grid-column:1/3; grid-row:1; padding:20px 28px 16px; border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
-    .appbar-title{font-size:19px;}
+    .appbar{grid-column:1/3; grid-row:1; padding:22px 30px 26px; border-radius:0 0 30px 30px;}
+    .appbar-title{font-size:20px;}
 
-    .view{grid-column:1; grid-row:3; padding:26px 28px 120px; border-radius:0 0 0 var(--radius-lg);}
+    .view{grid-column:1; grid-row:2; padding:8px 30px 120px;}
+    .chips-wrap{margin:0 0 4px; padding:12px 0 10px; position:sticky; top:var(--header-h);}
     .menu-grid{grid-template-columns:repeat(3,1fr); gap:16px;}
-    .chips{position:sticky; top:var(--header-h); margin:0 0 4px;}
+    .menu-skeleton{grid-template-columns:repeat(3,1fr);}
 
     #view-cart{
-  display:flex !important; flex-direction:column;
-  grid-column:2; grid-row:2/4;
-  padding:20px 20px calc(20px + env(safe-area-inset-bottom));
-  background:#fff;
-  border-left:1px solid var(--paper-2);
-  position:sticky; top:0; align-self:start;
-  height:calc(100vh - var(--header-h));
-  overflow-y:auto;
-  border-radius:0 0 var(--radius-lg) 0;
-}
+      display:flex !important; flex-direction:column;
+      grid-column:2; grid-row:2;
+      padding:22px 22px calc(20px + env(safe-area-inset-bottom));
+      background:#fff;
+      border-left:1px solid var(--line);
+      position:sticky; top:0; align-self:start;
+      height:calc(100vh - var(--header-h));
+      overflow-y:auto;
+    }
   }
   @media(min-width:1400px){
     .menu-grid{grid-template-columns:repeat(4,1fr);}
@@ -427,11 +402,12 @@
 
   <!-- Header -->
   <div class="appbar">
+    <div class="appbar-eyebrow">Order Ticket · Meeting</div>
     <div class="appbar-row">
       <div class="appbar-avatar">☕</div>
       <div>
         <div class="appbar-title">Café Amazon</div>
-        <div class="appbar-sub">ตั๋วสั่งกาแฟ · งานประชุม</div>
+        <div class="appbar-sub">ตั๋วสั่งกาแฟสำหรับงานประชุม</div>
       </div>
       <div class="appbar-date" id="todayLabel">-</div>
     </div>
@@ -439,8 +415,7 @@
 
   <!-- ================= MENU VIEW ================= -->
   <div class="view active" id="view-menu">
-    <div class="chips" id="catChips"></div>
-    <div class="chips-spacer"></div>
+    <div class="chips-wrap"><div class="chips" id="catChips"></div></div>
     <div id="menuContainer"></div>
   </div>
 
@@ -460,28 +435,28 @@
     </div>
     <div id="summaryContent"></div>
   </div>
-  
+
   <!-- ================= HISTORY VIEW ================= -->
-<div class="view" id="view-history">
-  <div id="historyDateList"></div>
-  <div id="historyContent"></div>
-</div>
+  <div class="view" id="view-history">
+    <div id="historyDateList"></div>
+    <div id="historyContent"></div>
+  </div>
 
   <!-- Bottom nav -->
   <div class="bottomnav">
     <button class="navbtn active" data-view="menu">
-      <span class="icon">☕</span><span class="lbl">สั่งเครื่องดื่ม</span>
+      <span class="icon-wrap">☕</span><span class="lbl">สั่งเครื่องดื่ม</span>
     </button>
     <button class="navbtn navbtn-cart" data-view="cart">
-      <span class="icon">🎫</span><span class="lbl">ตะกร้า</span>
+      <span class="icon-wrap">🎫</span><span class="lbl">ตะกร้า</span>
       <span class="navbadge" id="cartBadge" style="display:none;">0</span>
     </button>
     <button class="navbtn" data-view="summary">
-      <span class="icon">📋</span><span class="lbl">สรุปวันนี้</span>
+      <span class="icon-wrap">📋</span><span class="lbl">สรุปวันนี้</span>
     </button>
     <button class="navbtn" data-view="history">
-  <span class="icon">🗓️</span><span class="lbl">ย้อนหลัง</span>
-  </button>
+      <span class="icon-wrap">🗓️</span><span class="lbl">ย้อนหลัง</span>
+    </button>
   </div>
 
 </div>
@@ -497,7 +472,7 @@
       </div>
     </div>
 
-    <div class="field-label">ชื่อผู้สั่ง <span style="color:#9C4426">*</span></div>
+    <div class="field-label">ชื่อผู้สั่ง <span style="color:var(--coral-deep)">*</span></div>
     <input type="text" class="field-input" id="mOrderer" placeholder="พิมพ์ชื่อผู้สั่ง เช่น ส.ต.อ.ฉัตรชัย">
 
     <div class="field-label">จำนวน (แก้ว)</div>
@@ -530,40 +505,11 @@
 // วาง URL ของ Google Apps Script Web App ที่ deploy แล้วตรงนี้
 const GAS_URL = "https://script.google.com/macros/s/AKfycbybVsRQyto-dZSDVl5UBOWpfJxYZViM_JXYyj3_qxl7L-MJC--2TduI3IL0TdrrAivBew/exec";
 
-/* ====================== MENU DATA ====================== */
-const MENU = [
-  { cat:"กาแฟร้อน", icon:"☕", type:"hot", items:[
-    {name:"เอสเปรสโซ่", price:45},
-    {name:"อเมริกาโน่ร้อน", price:45},
-    {name:"ลาเต้ร้อน", price:50},
-    {name:"คาปูชิโน่ร้อน", price:50},
-    {name:"มอคค่าร้อน", price:55},
-  ]},
-  { cat:"กาแฟเย็น", icon:"🧊", type:"cold", items:[
-    {name:"อเมริกาโน่เย็น", price:50},
-    {name:"ลาเต้เย็น", price:55},
-    {name:"คาปูชิโน่เย็น", price:55},
-    {name:"มอคค่าเย็น", price:60},
-    {name:"คาราเมลมัคคิอาโต้เย็น", price:60},
-  ]},
-  { cat:"กาแฟปั่น", icon:"🥤", type:"blend", items:[
-    {name:"คาปูชิโน่ปั่น", price:65},
-    {name:"มอคค่าปั่น", price:65},
-    {name:"คาราเมลปั่น", price:65},
-  ]},
-  { cat:"ชา / โกโก้", icon:"🍵", type:"cold", items:[
-    {name:"ชาไทยเย็น", price:45},
-    {name:"ชาเขียวเย็น", price:45},
-    {name:"ชาเขียวปั่น", price:60, type:"blend"},
-    {name:"โกโก้เย็น", price:50},
-    {name:"โกโก้ปั่น", price:60, type:"blend"},
-  ]},
-  { cat:"เครื่องดื่มอื่นๆ", icon:"🍊", type:"cold", items:[
-    {name:"น้ำส้ม 100%", price:45},
-    {name:"น้ำผึ้งมะนาว", price:45},
-    {name:"สมูทตี้ผลไม้รวม", price:60, type:"blend"},
-  ]},
-];
+/* ====================== MENU DATA (โหลดจากชีต Menu ผ่าน GAS) ====================== */
+// รูปแบบ: [{ cat, icon, items:[{name, price, image, type, icon}] }]
+let MENU = [];
+let menuLoaded = false;
+let menuLoadFailed = false;
 
 const SWEET_OPTS = ["หวานปกติ","หวานน้อย","ไม่หวาน","หวานมาก"];
 const ICE_OPTS = ["น้ำแข็งปกติ","น้ำแข็งน้อย","ไม่ใส่น้ำแข็ง"];
@@ -587,9 +533,7 @@ function thaiDateLabel(d){
 }
 document.getElementById('todayLabel').textContent = thaiDateLabel(new Date());
 
-/* ====================== STICKY HEADER OFFSET ======================
-   วัดความสูงจริงของ appbar แล้วตั้งค่าตัวแปร CSS --header-h
-   เพื่อให้แถบหมวดหมู่ (chips) sticky ได้ถูกตำแหน่งเสมอ ไม่ว่าจะเปิดจากมือถือหรือคอมพิวเตอร์ */
+/* ====================== STICKY HEADER OFFSET ====================== */
 function syncHeaderHeight(){
   const bar = document.querySelector('.appbar');
   if(!bar) return;
@@ -600,17 +544,50 @@ window.addEventListener('load', syncHeaderHeight);
 window.addEventListener('resize', syncHeaderHeight);
 syncHeaderHeight();
 
-/* ====================== RENDER MENU ====================== */
-const catChipsEl = document.getElementById('catChips');
+/* ====================== LOAD MENU FROM SHEET ====================== */
 const menuContainerEl = document.getElementById('menuContainer');
+const catChipsEl = document.getElementById('catChips');
 
+function renderMenuSkeleton(){
+  menuContainerEl.innerHTML = `
+    <div class="menu-skeleton">
+      ${Array.from({length:6}).map(()=>`
+        <div class="sk-card">
+          <div class="sk-photo"></div>
+          <div class="sk-line" style="width:85%"></div>
+          <div class="sk-line w60"></div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+async function loadMenu(){
+  renderMenuSkeleton();
+  try{
+    const res = await fetch(GAS_URL + '?action=getMenu');
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'load menu failed');
+    MENU = data.categories || [];
+    menuLoaded = true;
+    menuLoadFailed = false;
+  }catch(err){
+    console.error(err);
+    menuLoadFailed = true;
+    MENU = [];
+  }
+  renderChips();
+  renderMenu();
+}
+
+/* ====================== RENDER MENU ====================== */
 function iconClassFor(type){
-  if(type==="cold") return "cold";
+  if(type==="cold") return "";
   if(type==="blend") return "blend";
-  return "";
+  return "hot";
 }
 
 function renderChips(){
+  if(MENU.length === 0){ catChipsEl.innerHTML = ''; return; }
   catChipsEl.innerHTML = MENU.map((c,i)=>
     `<div class="chip ${i===0?'active':''}" data-cat="${c.cat}">${c.icon} ${c.cat}</div>`
   ).join('');
@@ -630,28 +607,39 @@ function renderChips(){
 }
 
 function renderMenu(){
+  if(menuLoadFailed){
+    menuContainerEl.innerHTML = `<div class="menu-error">โหลดเมนูไม่สำเร็จ ตรวจสอบการเชื่อมต่อ แล้วลองใหม่<br><br>
+      <button class="btn btn-secondary" id="retryMenuBtn" style="margin-top:8px;">🔄 ลองใหม่</button></div>`;
+    document.getElementById('retryMenuBtn').addEventListener('click', loadMenu);
+    return;
+  }
+  if(MENU.length === 0){
+    menuContainerEl.innerHTML = `<div class="menu-error">ยังไม่มีเมนูในระบบ กรุณาเพิ่มเมนูในชีต "Menu"</div>`;
+    return;
+  }
+
   menuContainerEl.innerHTML = MENU.map(c=>{
     const banner = `
       <div class="cat-banner">
-        <div class="cat-banner-label">
-          <div class="icon-badge">${c.icon}</div>
-          <div>
-            <div class="eyebrow">เมนูหมวดหมู่</div>
-            <h2>${c.cat}</h2>
-          </div>
-        </div>
+        <span class="dot"></span>
+        <h2>${c.icon} ${c.cat}</h2>
+        <span class="count">${c.items.length} เมนู</span>
       </div>`;
     return `
     <div id="sec-${c.cat}">
       ${banner}
       <div class="menu-grid">
         ${c.items.map(it=>{
-          const t = it.type || c.type;
-          return `<div class="menu-card" data-cat="${c.cat}" data-icon="${c.icon}" data-name="${it.name}" data-price="${it.price}" data-type="${t}">
-            <div class="menu-icon ${iconClassFor(t)}">${c.icon}</div>
+          const t = it.type || 'hot';
+          const photo = it.image
+            ? `<img src="${it.image}" alt="${it.name}" loading="lazy" onerror="this.parentElement.innerHTML='${it.icon || c.icon}'; this.parentElement.classList.add('${iconClassFor(t)}');">`
+            : (it.icon || c.icon);
+          const photoClass = it.image ? '' : iconClassFor(t);
+          return `<div class="menu-card" data-cat="${c.cat}" data-icon="${it.icon || c.icon}" data-name="${it.name}" data-price="${it.price}" data-type="${t}" data-image="${it.image || ''}">
+            <div class="menu-photo ${photoClass}">${photo}</div>
             <div class="menu-name">${it.name}</div>
             <div class="menu-price num">${it.price} บาท</div>
-            <div class="menu-add">+ เพิ่ม</div>
+            <div class="menu-add">+</div>
           </div>`;
         }).join('')}
       </div>
@@ -662,14 +650,12 @@ function renderMenu(){
   menuContainerEl.querySelectorAll('.menu-card').forEach(card=>{
     card.addEventListener('click', ()=>openModal({
       cat: card.dataset.cat, icon: card.dataset.icon, name: card.dataset.name,
-      price: Number(card.dataset.price), type: card.dataset.type
+      price: Number(card.dataset.price), type: card.dataset.type, image: card.dataset.image
     }));
   });
 
   setupScrollSpy();
 }
-renderChips();
-renderMenu();
 
 /* ====================== SCROLLSPY ====================== */
 function setupScrollSpy(){
@@ -699,7 +685,8 @@ function openModal(item){
   currentSelSweet = SWEET_OPTS[0];
   currentSelIce = ICE_OPTS[0];
   currentQty = 1;
-  document.getElementById('mIcon').textContent = item.icon;
+  const iconEl = document.getElementById('mIcon');
+  iconEl.innerHTML = item.image ? `<img src="${item.image}" alt="${item.name}" onerror="this.parentElement.textContent='${item.icon}';">` : item.icon;
   document.getElementById('mName').textContent = item.name;
   document.getElementById('mPrice').textContent = item.price + " บาท";
   document.getElementById('mOrderer').value = "";
@@ -753,7 +740,7 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
   const localId = 'c'+Date.now()+Math.random().toString(36).slice(2,7);
   const entry = {
     localId, name: orderer, category: currentItem.cat, menu: currentItem.name,
-    icon: currentItem.icon, sweet: currentSelSweet,
+    icon: currentItem.icon, image: currentItem.image, sweet: currentSelSweet,
     ice: currentItem.type==="cold" ? currentSelIce : "-",
     price: currentItem.price, note: note, qty: qty
   };
@@ -826,9 +813,10 @@ function renderCart(){
   }
   listEl.innerHTML = cart.map(it=>{
     const q = it.qty || 1;
+    const iconInner = it.image ? `<img src="${it.image}" alt="${it.menu}" onerror="this.parentElement.textContent='${it.icon}';">` : it.icon;
     return `
     <div class="cart-item" data-id="${it.localId}">
-      <div class="ci-icon">${it.icon}</div>
+      <div class="ci-icon">${iconInner}</div>
       <div class="ci-info">
         <div class="ci-name">${it.menu} — คุณ${it.name}</div>
         <div class="ci-meta">${it.sweet}${it.ice!=='-'?(' · '+it.ice):''}${it.note?(' · '+it.note):''}</div>
@@ -1010,7 +998,6 @@ function renderSummary(){
           <h3>☕ Café Amazon — สรุปวันนี้</h3>
           <div class="sub">${thaiDateLabel(new Date())} · ${todayOrders.length} แก้ว</div>
         </div>
-        <div class="perf-edge light"></div>
         <div class="receipt-body">${rowsHtml}</div>
         <div class="receipt-total"><span>รวมทั้งหมด</span><span class="num">${total} บาท</span></div>
         <div class="receipt-foot">ใช้รูปนี้อ้างอิงตอนสั่งที่ร้าน Café Amazon</div>
@@ -1025,7 +1012,7 @@ function renderSummary(){
   document.getElementById('saveImgBtn').addEventListener('click', saveReceiptImage);
 }
 
-  /* ====================== HISTORY VIEW ====================== */
+/* ====================== HISTORY VIEW ====================== */
 let historyDates = [];
 let selectedHistoryDate = null;
 
@@ -1052,9 +1039,10 @@ function renderHistoryDateList(){
     return;
   }
   listEl.innerHTML = `
-    <div class="cat-heading" style="display:block;">เลือกวันที่</div>
-    <div class="chips" style="position:static; margin:0 0 16px;">
-      ${historyDates.map(d=>`<div class="chip hist-chip ${d===selectedHistoryDate?'active':''}" data-date="${d}">${thaiDateFromStr_(d)}${d===today?' (วันนี้)':''}</div>`).join('')}
+    <div class="chips-wrap" style="position:static; margin:16px 0 0; padding:0;">
+      <div class="chips">
+        ${historyDates.map(d=>`<div class="chip hist-chip ${d===selectedHistoryDate?'active':''}" data-date="${d}">${thaiDateFromStr_(d)}${d===today?' (วันนี้)':''}</div>`).join('')}
+      </div>
     </div>
   `;
   listEl.querySelectorAll('.hist-chip').forEach(chip=>{
@@ -1072,7 +1060,6 @@ function renderHistoryDateList(){
 }
 
 function todayStr_(){
-  // ให้ตรงกับรูปแบบ yyyy-MM-dd ฝั่ง client (ใช้ประมาณเทียบกับ label เท่านั้น)
   const d = new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
@@ -1129,7 +1116,6 @@ function renderHistoryReceipt(date, orders){
           <h3>☕ Café Amazon — สรุปย้อนหลัง</h3>
           <div class="sub">${thaiDateFromStr_(date)} · ${orders.length} แก้ว</div>
         </div>
-        <div class="perf-edge light"></div>
         <div class="receipt-body">${rowsHtml}</div>
         <div class="receipt-total"><span>รวมทั้งหมด</span><span class="num">${total} บาท</span></div>
       </div>
@@ -1146,7 +1132,7 @@ function renderHistoryReceipt(date, orders){
 async function saveReceiptImageEl_(node, fname){
   showToast('กำลังสร้างรูปภาพ...');
   try{
-    const canvas = await html2canvas(node, {scale:2, backgroundColor:'#fffdf6', useCORS:true});
+    const canvas = await html2canvas(node, {scale:2, backgroundColor:'#ffffff', useCORS:true});
     const link = document.createElement('a');
     link.download = fname;
     link.href = canvas.toDataURL('image/png');
@@ -1162,7 +1148,7 @@ async function saveReceiptImage(){
   const node = document.getElementById('receiptCapture');
   showToast('กำลังสร้างรูปภาพ...');
   try{
-    const canvas = await html2canvas(node, {scale:2, backgroundColor:'#fffdf6', useCORS:true});
+    const canvas = await html2canvas(node, {scale:2, backgroundColor:'#ffffff', useCORS:true});
     const link = document.createElement('a');
     const fname = 'coffee-order-' + new Date().toISOString().slice(0,10) + '.png';
     link.download = fname;
@@ -1190,6 +1176,7 @@ document.querySelectorAll('.navbtn').forEach(btn=>{
 /* ====================== INIT ====================== */
 renderCart();
 updateCartBadge();
+loadMenu();
 loadToday();
 </script>
 </body>
