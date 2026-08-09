@@ -448,9 +448,10 @@
 
   .toast{
     position:fixed; bottom:calc(64px + 44px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
-    background:var(--navy-1); color:#fff; padding:10px 18px; border-radius:100px;
+    background:var(--navy-1); color:#fff; padding:10px 18px; border-radius:18px;
     font-size:12.5px; z-index:200; opacity:0; pointer-events:none; transition:.28s var(--ease);
-    white-space:nowrap; box-shadow:0 10px 24px rgba(18,43,56,0.35);
+    max-width:calc(100% - 48px); width:max-content; text-align:center; white-space:normal; line-height:1.4;
+    box-shadow:0 10px 24px rgba(18,43,56,0.35);
   }
   .toast.show{opacity:1; bottom:calc(64px + 54px + env(safe-area-inset-bottom));}
 
@@ -982,12 +983,12 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
 
 /* ====================== TOAST ====================== */
 let toastTimer;
-function showToast(msg){
+function showToast(msg, duration){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), duration || 1800);
 }
 
 /* ====================== CART VIEW ====================== */
@@ -1340,18 +1341,60 @@ function renderHistoryReceipt(date, orders){
 let __previewBlob = null;
 let __previewFname = 'coffee-order.png';
 
-function openImagePreview_(canvas, fname){
-  return new Promise(resolve=>{
-    canvas.toBlob(blob=>{
-      if(!blob){ resolve(false); return; }
-      __previewBlob = blob;
-      __previewFname = fname;
-      const url = URL.createObjectURL(blob);
-      document.getElementById('imgPrevImg').src = url;
-      document.getElementById('imgPrevBackdrop').classList.add('open');
-      resolve(true);
-    }, 'image/png');
+// canvas.toBlob() is where the previous silent-failure bug lived: on some
+// mobile webviews (seen across LINE's in-app browser, Safari, and Chrome
+// alike — it's a webview/canvas quirk, not one specific app) the callback
+// either never fires or fires with blob=null, and the old code just
+// resolved(false) with no error — so tapping "บันทึกเป็นรูปภาพ" did nothing
+// and nobody was told why. This version (1) falls back to toDataURL, which
+// is far more reliably supported, if toBlob is slow or empty, and (2) throws
+// instead of silently resolving so the caller's catch block can finally show
+// an error toast if image generation truly fails.
+function canvasToBlob_(canvas){
+  return new Promise((resolve)=>{
+    let done = false;
+    const finish = (blob)=>{ if(done) return; done = true; resolve(blob); };
+
+    const fallbackViaDataUrl = ()=>{
+      try{
+        const dataUrl = canvas.toDataURL('image/png');
+        const bin = atob(dataUrl.split(',')[1]);
+        const arr = new Uint8Array(bin.length);
+        for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+        finish(new Blob([arr], {type:'image/png'}));
+      }catch(e){
+        console.error('toDataURL fallback failed', e);
+        finish(null);
+      }
+    };
+
+    try{
+      canvas.toBlob(blob=>{
+        if(blob){ finish(blob); } else { fallbackViaDataUrl(); }
+      }, 'image/png');
+    }catch(e){
+      console.error('toBlob threw', e);
+      fallbackViaDataUrl();
+    }
+
+    // Safety net: some webviews never call the toBlob callback at all on
+    // certain canvas sizes. Don't let the button hang forever in silence —
+    // try the fallback, and if that also fails, finish(null) so the caller
+    // can surface a real error instead of nothing happening.
+    setTimeout(()=>{ if(!done) fallbackViaDataUrl(); }, 1500);
   });
+}
+
+async function openImagePreview_(canvas, fname){
+  const blob = await canvasToBlob_(canvas);
+  if(!blob){
+    throw new Error('สร้างรูปภาพไม่สำเร็จ (blob ว่างเปล่า) — อาจเป็นเพราะรูปในรายการโหลดไม่ครบ หรือเบราว์เซอร์นี้ไม่รองรับ');
+  }
+  __previewBlob = blob;
+  __previewFname = fname;
+  const url = URL.createObjectURL(blob);
+  document.getElementById('imgPrevImg').src = url;
+  document.getElementById('imgPrevBackdrop').classList.add('open');
 }
 
 document.getElementById('imgPrevClose').addEventListener('click', ()=>{
@@ -1393,7 +1436,7 @@ async function saveReceiptImageEl_(node, fname){
     await openImagePreview_(canvas, fname);
   }catch(err){
     console.error(err);
-    showToast('บันทึกรูปไม่สำเร็จ');
+    showToast('บันทึกรูปไม่สำเร็จ: ' + (err && err.message ? err.message : 'ลองใหม่อีกครั้ง'), 4000);
   }
 }
 
@@ -1406,7 +1449,7 @@ async function saveReceiptImage(){
     await openImagePreview_(canvas, fname);
   }catch(err){
     console.error(err);
-    showToast('บันทึกรูปไม่สำเร็จ');
+    showToast('บันทึกรูปไม่สำเร็จ: ' + (err && err.message ? err.message : 'ลองใหม่อีกครั้ง'), 4000);
   }
 }
 
