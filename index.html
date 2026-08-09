@@ -1462,10 +1462,20 @@ async function saveReceiptImageEl_(node, fname){
   node.classList.add('capturing-plain');
   try{
     const canvas = await withTimeout_(
-      html2canvas(node, {scale:1.5, backgroundColor:'#ffffff', useCORS:true, logging:false}),
-      15000,
-      'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 15 วิ) — ลองใหม่อีกครั้ง'
-    );
+  html2canvas(node, {
+    scale:1.5,
+    backgroundColor:'#ffffff',
+    useCORS:false,
+    logging:false,
+    onclone:(clonedDoc)=>{
+      // ตัด stylesheet ฟอนต์ Google Fonts ออกจากสำเนาที่ใช้ถ่ายภาพเท่านั้น —
+      // เพราะ html2canvas ค้างตอนพยายามอ่าน cross-origin stylesheet นี้
+      clonedDoc.querySelectorAll('link[href*="fonts.googleapis.com"]').forEach(l => l.remove());
+    }
+  }),
+  15000,
+  'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 15 วิ) — ลองใหม่อีกครั้ง'
+);
     await openImagePreview_(canvas, fname);
   }catch(err){
     console.error(err);
@@ -1481,10 +1491,20 @@ async function saveReceiptImage(){
   node.classList.add('capturing-plain');
   try{
     const canvas = await withTimeout_(
-      html2canvas(node, {scale:1.5, backgroundColor:'#ffffff', useCORS:true, logging:false}),
-      15000,
-      'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 15 วิ) — ลองใหม่อีกครั้ง'
-    );
+  html2canvas(node, {
+    scale:1.5,
+    backgroundColor:'#ffffff',
+    useCORS:false,
+    logging:false,
+    onclone:(clonedDoc)=>{
+      // ตัด stylesheet ฟอนต์ Google Fonts ออกจากสำเนาที่ใช้ถ่ายภาพเท่านั้น —
+      // เพราะ html2canvas ค้างตอนพยายามอ่าน cross-origin stylesheet นี้
+      clonedDoc.querySelectorAll('link[href*="fonts.googleapis.com"]').forEach(l => l.remove());
+    }
+  }),
+  15000,
+  'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 15 วิ) — ลองใหม่อีกครั้ง'
+);
     const fname = 'coffee-order-' + new Date().toISOString().slice(0,10) + '.png';
     await openImagePreview_(canvas, fname);
   }catch(err){
