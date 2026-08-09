@@ -1527,8 +1527,8 @@ function renderCoffeeReceiptToCanvas(orders, mode, opts){
 
   drawRoundRect(CARD_X, headerTop, CARD_W, headerH, 24, COLOR.navy);
   drawRoundRect(CARD_X, headerTop + headerH - 24, CARD_W, 24, 0, COLOR.navy);
-  drawFittedBlock(titleFit, W / 2, titleCenterY, "center", "bold", COLOR.titleText);
-  drawFittedBlock(dateFit, W / 2, dateCenterY, "center", "500", COLOR.subText);
+  drawFittedBlock(titleFit, CONTENT_X, titleCenterY, "left", "bold", COLOR.titleText);
+  drawFittedBlock(dateFit, CONTENT_X, dateCenterY, "left", "500", COLOR.subText);
 
   rowLayout.forEach((r, idx)=>{
     if(idx > 0){
