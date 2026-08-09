@@ -554,6 +554,11 @@
   @media(min-width:1400px){
     .menu-grid{grid-template-columns:repeat(4,1fr);}
   }
+  /* ใช้ตอนถ่ายรูปใบเสร็จเท่านั้น — เลี่ยงบั๊กที่ html2canvas
+   ค้างเวลาพยายามอ่านฟอนต์ Google Fonts แบบ cross-origin บนมือถือ */
+.capturing-plain, .capturing-plain *{
+  font-family:-apple-system, "Segoe UI", Arial, sans-serif !important;
+}
 </style>
 </head>
 <body>
@@ -1454,33 +1459,39 @@ document.getElementById('imgPrevSaveBtn').addEventListener('click', async ()=>{
 
 async function saveReceiptImageEl_(node, fname){
   showToast('กำลังสร้างรูปภาพ...');
+  node.classList.add('capturing-plain');
   try{
     const canvas = await withTimeout_(
-  html2canvas(node, {scale:2, backgroundColor:'#ffffff', useCORS:true}),
-  10000,
-  'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 10 วิ) — ลองใหม่อีกครั้ง'
-);
+      html2canvas(node, {scale:1.5, backgroundColor:'#ffffff', useCORS:true, logging:false}),
+      15000,
+      'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 15 วิ) — ลองใหม่อีกครั้ง'
+    );
     await openImagePreview_(canvas, fname);
   }catch(err){
     console.error(err);
     showToast('บันทึกรูปไม่สำเร็จ: ' + (err && err.message ? err.message : 'ลองใหม่อีกครั้ง'), 4000);
+  }finally{
+    node.classList.remove('capturing-plain');
   }
 }
 
 async function saveReceiptImage(){
   const node = document.getElementById('receiptCapture');
   showToast('กำลังสร้างรูปภาพ...');
+  node.classList.add('capturing-plain');
   try{
     const canvas = await withTimeout_(
-  html2canvas(node, {scale:2, backgroundColor:'#ffffff', useCORS:true}),
-  10000,
-  'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 10 วิ) — ลองใหม่อีกครั้ง'
-);
+      html2canvas(node, {scale:1.5, backgroundColor:'#ffffff', useCORS:true, logging:false}),
+      15000,
+      'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 15 วิ) — ลองใหม่อีกครั้ง'
+    );
     const fname = 'coffee-order-' + new Date().toISOString().slice(0,10) + '.png';
     await openImagePreview_(canvas, fname);
   }catch(err){
     console.error(err);
     showToast('บันทึกรูปไม่สำเร็จ: ' + (err && err.message ? err.message : 'ลองใหม่อีกครั้ง'), 4000);
+  }finally{
+    node.classList.remove('capturing-plain');
   }
 }
 
