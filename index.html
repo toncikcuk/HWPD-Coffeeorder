@@ -42,7 +42,7 @@
   button, .chip, .menu-card, .menu-add, .navbtn, .op-size-pill, .subtab,
   .ci-qty-btn, .ci-del, .hist-chip{ touch-action:manipulation; }
   html{scroll-behavior:smooth;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0; overscroll-behavior-y:contain;}
   body{
     font-family:'IBM Plex Sans Thai','Prompt',sans-serif;
     background:
@@ -319,19 +319,30 @@
   .opt-pill.sel{background:var(--navy-1); border-color:var(--navy-1); color:#fff;}
   .modal-actions{display:flex; gap:10px; margin-top:22px;}
 
-  /* ================= ORDER PAGE (product-detail style) ================= */
-  .modal-sheet.op{padding:0; max-height:94vh; display:flex; flex-direction:column; overflow:visible;}
+  /* ================= ORDER PAGE (product-detail style, fullscreen) ================= */
+  /* This sheet now fills the entire viewport instead of docking as a bottom
+     sheet, so the photo banner can run bigger and there's no separate
+     scroll container fighting the page underneath it (which is what caused
+     the "bounces out" feel — the outer backdrop used to catch the overscroll
+     and reveal the app behind it). */
+  .modal-sheet.op{
+    padding:0; display:flex; flex-direction:column; overflow:hidden;
+    position:fixed; inset:0; width:100%; max-width:100%;
+    height:100vh; height:100dvh; max-height:none; margin:0;
+    border-radius:0; animation:fadein-op .22s var(--ease);
+  }
+  @keyframes fadein-op{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);}}
 
   /* --- Hero: the photo now fills the whole banner edge-to-edge as a background
      layer, with the back button and qty stepper floating above it on their own
      z-index so the photo never covers them, no matter how big it is --- */
   .op-hero{
     background:linear-gradient(155deg,var(--navy-1),var(--navy-2) 75%,var(--navy-3));
-    border-radius:28px 28px 0 0; position:relative; flex-shrink:0;
-    height:190px;
+    border-radius:0; position:relative; flex-shrink:0;
+    height:clamp(240px, 38vh, 400px);
   }
   .op-photo-wrap{
-    position:absolute; inset:0; z-index:1; border-radius:28px 28px 0 0; overflow:hidden;
+    position:absolute; inset:0; z-index:1; border-radius:0; overflow:hidden;
     display:flex; align-items:center; justify-content:center;
   }
   .op-photo-emoji{
@@ -344,11 +355,11 @@
   /* soft gradient over the photo so the top controls stay readable on any image */
   .op-hero::after{
     content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
-    border-radius:28px 28px 0 0;
+    border-radius:0;
     background:linear-gradient(180deg, rgba(18,43,56,0.55) 0%, rgba(18,43,56,0.05) 38%, rgba(18,43,56,0.05) 62%, rgba(18,43,56,0.5) 100%);
   }
   .op-hero-topbar{
-    position:absolute; top:16px; left:18px; z-index:5;
+    position:absolute; top:calc(16px + env(safe-area-inset-top)); left:18px; z-index:5;
   }
   .op-back{
     width:36px;height:36px;border-radius:50%; background:rgba(18,43,56,0.55); border:none;
@@ -361,7 +372,7 @@
      sitting half on / half off the card — sheet's overflow is set to visible
      below so this isn't clipped */
   .op-close{
-    position:absolute; top:-14px; right:14px; z-index:6;
+    position:absolute; top:calc(16px + env(safe-area-inset-top)); right:14px; z-index:6;
     width:34px; height:34px; border-radius:50%; border:2px solid #fff;
     background:linear-gradient(160deg,#F0523A,#C42E17); color:#fff;
     font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center;
@@ -382,7 +393,10 @@
   .op-qty button:active{transform:scale(0.88);}
   .op-qty .op-qty-val{color:#fff; font-weight:800; font-size:14px; font-family:'IBM Plex Mono',monospace; min-width:14px; text-align:center;}
 
-  .op-body{padding:18px 20px 4px; overflow-y:auto; flex:1;}
+  .op-body{
+    padding:18px 20px 4px; overflow-y:auto; flex:1;
+    overscroll-behavior-y:contain; -webkit-overflow-scrolling:touch;
+  }
   .op-title{font-size:19px; font-weight:700; font-family:'Prompt',sans-serif; color:var(--navy-1);}
   .op-unitprice{font-size:12.5px; color:var(--muted); margin-top:4px; font-family:'IBM Plex Mono',monospace;}
 
@@ -870,9 +884,14 @@ function openModal(item){
   updateTotalDisplay();
 
   modalBackdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
   setTimeout(()=>document.getElementById('mOrderer').focus(), 200);
 }
-function closeModal(){ modalBackdrop.classList.remove('open'); currentItem=null; }
+function closeModal(){
+  modalBackdrop.classList.remove('open');
+  document.body.style.overflow = '';
+  currentItem=null;
+}
 document.getElementById('mCancel').addEventListener('click', closeModal);
 document.getElementById('mClose').addEventListener('click', closeModal);
 modalBackdrop.addEventListener('click', (e)=>{ if(e.target===modalBackdrop) closeModal(); });
