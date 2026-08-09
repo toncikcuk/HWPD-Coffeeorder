@@ -6,7 +6,6 @@
 <title>ตั๋วกาแฟ Café Amazon | ประชุม</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   /* ============================================================
      TOKEN SYSTEM — "late-night coffee counter, meeting-room edition"
@@ -37,8 +36,6 @@
     --header-h:150px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  /* Prevent the double-tap-to-zoom gesture from firing on repeated fast taps
-     (the qty +/- buttons especially) and keep the page pinch-zoom locked */
   button, .chip, .menu-card, .menu-add, .navbtn, .op-size-pill, .subtab,
   .ci-qty-btn, .ci-del, .hist-chip{ touch-action:manipulation; }
   html{scroll-behavior:smooth;}
@@ -58,7 +55,6 @@
   h1,h2,h3,.display{font-family:'Prompt',sans-serif;}
   .num{font-family:'IBM Plex Mono',monospace;}
 
-  /* ================= APP SHELL ================= */
   #app{
     width:100%;
     max-width:460px;
@@ -74,7 +70,6 @@
     #app{min-height:calc(100vh - 60px); border-radius:32px; overflow:hidden;}
   }
 
-  /* ---------- Header (navy briefing card) ---------- */
   .appbar{
     background:linear-gradient(150deg,var(--navy-1),var(--navy-2) 70%,var(--navy-3));
     color:#fff;
@@ -101,7 +96,6 @@
     flex-shrink:0;
   }
 
-  /* ---------- Category chips ---------- */
   .chips{
     display:flex; gap:8px; overflow-x:auto; padding:4px 2px 2px;
     scrollbar-width:none;
@@ -121,11 +115,9 @@
   }
   .chip.active{background:var(--coral); border-color:var(--coral); color:#fff; box-shadow:0 6px 14px rgba(234,108,66,0.35);}
 
-  /* ---------- Views ---------- */
   .view{display:none; padding:0 16px 14px; padding-bottom:calc(72px + 60px); flex:1;}
   .view.active{display:block;}
 
-  /* ---------- Category banner ---------- */
   .cat-banner{display:flex; align-items:center; gap:10px; margin:18px 2px 12px;}
   .cat-banner .dot{width:8px;height:8px;border-radius:3px;background:var(--coral);}
   .cat-banner h2{margin:0; font-size:16px; font-weight:700; color:var(--navy-1);}
@@ -173,7 +165,6 @@
     background:var(--paper); border-radius:var(--radius-lg); margin-top:16px; border:1.5px dashed var(--line);
   }
 
-  /* ---------- Cart panel heading ---------- */
   .cartpanel-heading{display:flex; align-items:center; justify-content:space-between; margin:18px 2px 12px;}
   .cartpanel-heading h3{font-size:15.5px; margin:0; color:var(--navy-1); font-weight:700; display:flex; align-items:center; gap:7px;}
   .cartpanel-heading span{font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace; background:var(--coral-tint); padding:4px 10px; border-radius:100px;}
@@ -184,7 +175,6 @@
     border-radius:var(--radius-lg);
   }
 
-  /* ---------- Cart items ---------- */
   .cart-item{
     display:flex; gap:10px; align-items:center; background:var(--paper); border-radius:var(--radius-lg);
     padding:10px 12px; margin-bottom:8px; border:1px solid var(--line);
@@ -222,7 +212,6 @@
   .btn-secondary{background:var(--sky-tint); color:var(--navy-1);}
   .btn-outline{background:#fff; color:var(--navy-1); border:1.5px solid var(--navy-2);}
 
-  /* ---------- Summary / receipt ---------- */
   .subtabs{display:flex; gap:8px; margin:18px 0 14px;}
   .subtab{flex:1; text-align:center; padding:9px; border-radius:100px; font-size:12.5px; font-weight:700; background:var(--paper); border:1px solid var(--line); cursor:pointer; color:var(--muted); transition:.2s var(--ease);}
   .subtab.active{background:var(--navy-1); color:#fff; border-color:var(--navy-1);}
@@ -256,7 +245,6 @@
   .empty-state .big{font-size:36px; margin-bottom:10px;}
   .empty-state .t{font-weight:700; color:var(--ink); margin-bottom:4px; font-size:14px; font-family:'Prompt',sans-serif;}
 
-  /* ---------- Bottom nav ---------- */
   .bottomnav{
     position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom));
     transform:translateX(-50%);
@@ -286,7 +274,6 @@
     font-family:'IBM Plex Mono',monospace; border:2px solid var(--navy-1);
   }
 
-  /* ---------- Modal ---------- */
   .modal-backdrop{
     position:fixed; inset:0; background:rgba(18,29,35,0.55); z-index:100;
     backdrop-filter:blur(3px);
@@ -307,7 +294,6 @@
   .field-label{font-size:12.5px; font-weight:700; margin:15px 0 6px; color:var(--ink);}
   .field-input{
     width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid var(--line);
-    /* 16px stops iOS Safari from auto-zooming the page when the field gets focus */
     font-size:16px; font-family:inherit; background:#FAF6EA; touch-action:manipulation;
   }
   .field-input:focus{outline:none; border-color:var(--navy-2);}
@@ -319,12 +305,6 @@
   .opt-pill.sel{background:var(--navy-1); border-color:var(--navy-1); color:#fff;}
   .modal-actions{display:flex; gap:10px; margin-top:22px;}
 
-  /* ================= ORDER PAGE (product-detail style, fullscreen) ================= */
-  /* This sheet now fills the entire viewport instead of docking as a bottom
-     sheet, so the photo banner can run bigger and there's no separate
-     scroll container fighting the page underneath it (which is what caused
-     the "bounces out" feel — the outer backdrop used to catch the overscroll
-     and reveal the app behind it). */
   .modal-sheet.op{
     padding:0; display:flex; flex-direction:column; overflow:hidden;
     position:fixed; inset:0; width:100%; max-width:100%;
@@ -333,9 +313,6 @@
   }
   @keyframes fadein-op{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);}}
 
-  /* --- Hero: the photo now fills the whole banner edge-to-edge as a background
-     layer, with the back button and qty stepper floating above it on their own
-     z-index so the photo never covers them, no matter how big it is --- */
   .op-hero{
     background:linear-gradient(155deg,var(--navy-1),var(--navy-2) 75%,var(--navy-3));
     border-radius:0; position:relative; flex-shrink:0;
@@ -352,7 +329,6 @@
   .op-photo-wrap img{
     width:100%; height:100%; object-fit:cover; object-position:top; display:block;
   }
-  /* soft gradient over the photo so the top controls stay readable on any image */
   .op-hero::after{
     content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
     border-radius:0;
@@ -368,9 +344,6 @@
     backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   }
   .op-back:active{background:rgba(18,43,56,0.75);}
-  /* Close (X) pops out beyond the banner's top-right corner, like a badge
-     sitting half on / half off the card — sheet's overflow is set to visible
-     below so this isn't clipped */
   .op-close{
     position:absolute; top:calc(16px + env(safe-area-inset-top)); right:14px; z-index:6;
     width:34px; height:34px; border-radius:50%; border:2px solid #fff;
@@ -408,8 +381,6 @@
     background:#fff; color:var(--navy-2); font-weight:700; font-size:12.5px; cursor:pointer; transition:.18s var(--ease);
   }
   .op-size-pill.sel{background:var(--coral); border-color:var(--coral); color:#fff; box-shadow:0 8px 16px rgba(234,108,66,0.32);}
-
-
 
   .op-footer{
     display:flex; align-items:center; gap:12px; padding:14px 20px calc(14px + env(safe-area-inset-bottom));
@@ -457,7 +428,6 @@
 
   .save-btn-row{display:flex; gap:10px; padding:0 0 14px;}
 
-  /* ---------- Image preview / save sheet ---------- */
   .imgprev-backdrop{
     position:fixed; inset:0; background:rgba(10,18,23,0.95); z-index:300;
     display:none; flex-direction:column;
@@ -476,7 +446,6 @@
 
   ::-webkit-scrollbar{width:0; height:0;}
 
-  /* ================= DESKTOP WEBAPP LAYOUT ================= */
   @media(min-width:1024px){
     body{padding:32px 20px;}
     #app{
@@ -509,10 +478,6 @@
       overflow-y:auto;
     }
 
-    /* ---------- Order dialog: on desktop this drops the mobile "fullscreen
-       sheet" and becomes a centred, two-pane quick-view card — photo fills
-       a fixed left pane, the form scrolls independently on the right, with
-       its own footer pinned under it. Same DOM, just re-flowed with grid. ---------- */
     .modal-backdrop{ align-items:center; justify-content:center; padding:40px; background:rgba(10,20,26,0.62); backdrop-filter:blur(6px); }
     .modal-sheet.op{
       position:relative; inset:auto; margin:0 auto;
@@ -532,7 +497,7 @@
     }
     .op-photo-wrap, .op-hero::after{ border-radius:0; }
     .op-photo-emoji{ font-size:88px; }
-    .op-hero-topbar{ display:none; } /* the top-right ✕ is enough to dismiss on desktop */
+    .op-hero-topbar{ display:none; }
     .op-qty{ right:20px; bottom:20px; }
 
     .op-close{
@@ -554,17 +519,11 @@
   @media(min-width:1400px){
     .menu-grid{grid-template-columns:repeat(4,1fr);}
   }
-  /* ใช้ตอนถ่ายรูปใบเสร็จเท่านั้น — เลี่ยงบั๊กที่ html2canvas
-   ค้างเวลาพยายามอ่านฟอนต์ Google Fonts แบบ cross-origin บนมือถือ */
-.capturing-plain, .capturing-plain *{
-  font-family:-apple-system, "Segoe UI", Arial, sans-serif !important;
-}
 </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- Header -->
   <div class="appbar">
     <div class="appbar-eyebrow">Order Ticket · Meeting</div>
     <div class="appbar-row">
@@ -577,20 +536,17 @@
     </div>
   </div>
 
-  <!-- ================= MENU VIEW ================= -->
   <div class="view active" id="view-menu">
     <div class="chips-wrap"><div class="chips" id="catChips"></div></div>
     <div id="menuContainer"></div>
   </div>
 
-  <!-- ================= CART VIEW (persistent panel on desktop) ================= -->
   <div class="view" id="view-cart">
     <div class="cartpanel-heading"><h3>🎫 ตั๋วที่กำลังสั่ง</h3><span id="cartCountLbl"></span></div>
     <div id="cartList"></div>
     <div id="cartFooter"></div>
   </div>
 
-  <!-- ================= SUMMARY VIEW ================= -->
   <div class="view" id="view-summary">
     <div class="subtabs">
       <div class="subtab active" data-mode="byMenu">สรุปสั่งร้าน</div>
@@ -599,13 +555,11 @@
     <div id="summaryContent"></div>
   </div>
 
-  <!-- ================= HISTORY VIEW ================= -->
   <div class="view" id="view-history">
     <div id="historyDateList"></div>
     <div id="historyContent"></div>
   </div>
 
-  <!-- Bottom nav -->
   <div class="bottomnav">
     <button class="navbtn active" data-view="menu">
       <span class="icon-wrap">☕</span><span class="lbl">สั่งเครื่องดื่ม</span>
@@ -624,12 +578,9 @@
 
 </div>
 
-<!-- Order page (product-detail style) -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal-sheet op">
 
-    <!-- ส่วนหัว: ปุ่มย้อนกลับอยู่แถวบนสุด แยกจากรูป+ตัวปรับจำนวนที่อยู่แถวถัดมา
-         เพื่อไม่ให้ทับกันไม่ว่ารูปจะมีพื้นหลังทึบหรือโปร่งใสก็ตาม -->
     <div class="op-hero">
       <div class="op-photo-wrap"><div class="op-photo-emoji" id="mIcon">☕</div></div>
       <div class="op-hero-topbar">
@@ -647,11 +598,9 @@
       <div class="op-title" id="mName">-</div>
       <div class="op-unitprice num" id="mPrice">-</div>
 
-      <!-- ปุ่มเลือกชนิด: ร้อน/เย็น/ปั่น — โชว์เฉพาะเมนูที่มีให้เลือกมากกว่า 1 ชนิด -->
       <div class="op-section-label" id="mTypeLabel" style="display:none;">ชนิด</div>
       <div class="op-size-row" id="mType" style="display:none;"></div>
 
-      <!-- ปรับแต่งเครื่องดื่ม: กดที่การ์ดเพื่อวนเปลี่ยนตัวเลือก (แทนที่แถวปุ่มยาวแบบเดิม) -->
       <div class="op-section-label">ความหวาน</div>
       <div class="op-size-row" id="mSweet"></div>
 
@@ -674,10 +623,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Image preview / save sheet — shows the generated receipt as an <img> the
-     user can long-press to save (works even where share()/downloads get
-     silently blocked), plus a share/save button they tap directly (a fresh
-     user gesture, so it isn't blocked like a delayed auto-download would be) -->
 <div class="imgprev-backdrop" id="imgPrevBackdrop">
   <div class="imgprev-top">
     <button type="button" class="imgprev-close" id="imgPrevClose" aria-label="ปิด">✕</button>
@@ -691,25 +636,22 @@
 
 <script>
 /* ====================== CONFIG ====================== */
-// วาง URL ของ Google Apps Script Web App ที่ deploy แล้วตรงนี้
 const GAS_URL = "https://script.google.com/macros/s/AKfycbybVsRQyto-dZSDVl5UBOWpfJxYZViM_JXYyj3_qxl7L-MJC--2TduI3IL0TdrrAivBew/exec";
 
 /* ====================== MENU DATA (โหลดจากชีต Menu ผ่าน GAS) ====================== */
-// รูปแบบ: [{ cat, icon, items:[{name, image, icon, types:['hot','cold'], prices:{hot:45,cold:50}, price}] }]
 let MENU = [];
 let menuLoaded = false;
 let menuLoadFailed = false;
 
 const SWEET_OPTS = ["หวานปกติ (100%)","หวานน้อย (50%)","หวานน้อยมาก (25%)","ไม่หวาน (0%)"];
-// ป้ายภาษาไทยของแต่ละชนิด ใช้แสดงบนปุ่มเลือกในหน้าต่างสั่ง และในตะกร้า/ข้อความตั๋ว
 const TYPE_LABELS = { hot: "ร้อน", cold: "เย็น", blend: "ปั่น" };
 
 /* ====================== STATE ====================== */
-let cart = [];          // ยังไม่ส่ง — each item has a unique localId
-let todayOrders = [];   // ข้อมูลที่ส่งไปแล้ว (จาก sheet)
+let cart = [];
+let todayOrders = [];
 let currentItem = null;
 let currentSelSweet = SWEET_OPTS[0];
-let currentSelType = "hot";   // ชนิดที่กำลังเลือกอยู่ในหน้าต่างสั่ง (hot/cold/blend)
+let currentSelType = "hot";
 let currentQty = 1;
 const MAX_QTY = 20;
 let suppressScrollSpy = false;
@@ -825,7 +767,6 @@ function renderMenu(){
             ? `<img src="${it.image}" alt="${it.name}" loading="lazy" onerror="this.parentElement.innerHTML='${it.icon || c.icon}'; this.parentElement.classList.add('${iconClassFor(defaultType)}');">`
             : (it.icon || c.icon);
           const photoClass = it.image ? '' : iconClassFor(defaultType);
-          // เก็บ types/prices เป็น JSON ไว้ใน data attribute (ครอบด้วย single quote เพราะ JSON ใช้ double quote)
           return `<div class="menu-card" data-cat="${c.cat}" data-icon="${it.icon || c.icon}" data-name="${it.name}"
               data-price="${it.price}" data-image="${it.image || ''}"
               data-types='${JSON.stringify(types)}' data-prices='${JSON.stringify(it.prices || {})}'>
@@ -875,20 +816,17 @@ function setupScrollSpy(){
 
 /* ====================== MODAL ====================== */
 const modalBackdrop = document.getElementById('modalBackdrop');
-// ราคาต่อแก้วตามชนิดที่เลือกอยู่ตอนนี้
 function currentUnitPrice(){
   if(!currentItem) return 0;
   return currentItem.prices[currentSelType] != null ? currentItem.prices[currentSelType] : currentItem.price;
 }
 
-// อัปเดตราคาต่อแก้ว + ราคารวม (ต่อแก้ว x จำนวน) ทุกครั้งที่ชนิดหรือจำนวนเปลี่ยน
 function updateTotalDisplay(){
   const unit = currentUnitPrice();
   document.getElementById('mPrice').textContent = unit + ' บาท / แก้ว';
   document.getElementById('mTotal').textContent = (unit * currentQty) + ' บาท';
 }
 
-// ปุ่มเลือกความหวาน ใช้สไตล์เดียวกับปุ่มเลือกชนิด (แถวปุ่มเม็ดยา กดเลือกตรง ๆ)
 function renderSweetRow(){
   document.getElementById('mSweet').innerHTML = SWEET_OPTS.map((s,i)=>
     `<div class="op-size-pill ${s===currentSelSweet?'sel':''}" data-val="${s}">${s}</div>`).join('');
@@ -913,7 +851,6 @@ function openModal(item){
   document.getElementById('mNote').value = "";
   document.getElementById('mQtyVal').textContent = currentQty;
 
-  // ปุ่มเลือกชนิด (ร้อน/เย็น/ปั่น) — โชว์เฉพาะเมนูที่มีให้เลือกมากกว่า 1 ชนิด
   const showType = types.length > 1;
   document.getElementById('mTypeLabel').style.display = showType ? 'block' : 'none';
   document.getElementById('mType').style.display = showType ? 'flex' : 'none';
@@ -967,7 +904,6 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
   const note = document.getElementById('mNote').value.trim();
   const qty = currentQty;
   const localId = 'c'+Date.now()+Math.random().toString(36).slice(2,7);
-  // ราคาจริงขึ้นกับชนิดที่เลือก (currentSelType) ไม่ใช่ราคาเริ่มต้นของเมนูเสมอไป
   const finalPrice = currentUnitPrice();
   const entry = {
     localId, name: orderer, category: currentItem.cat, menu: currentItem.name,
@@ -976,15 +912,11 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
     price: finalPrice, note: note, qty: qty
   };
   cart.push(entry);
-  // ผูกตั๋ว/ข้อความเข้ากับ localId เดียวกับรายการในตะกร้า
-  // เพื่อให้ลบรายการแล้วข้อความที่แสดงหายไปด้วย
   renderCart();
   updateCartBadge();
   showToast(`เพิ่ม ${currentItem.name}${qty>1?(' x'+qty):''} ให้คุณ${orderer} แล้ว`);
   closeModal();
 });
-
-
 
 /* ====================== TOAST ====================== */
 let toastTimer;
@@ -1048,7 +980,6 @@ function renderCart(){
         it.qty = cur + 1;
       } else {
         if(cur <= 1){
-          // ลดจาก 1 แก้ว = เอารายการนี้ออกจากตะกร้าเลย
           cart = cart.filter(c=>c.localId !== id);
           renderCart(); updateCartBadge();
           return;
@@ -1083,8 +1014,6 @@ function updateCartBadge(){
 }
 
 function expandCartForBackend(){
-  // แตกรายการที่มี qty > 1 ให้เป็นหนึ่งแถวต่อหนึ่งแก้ว
-  // เพื่อให้รูปแบบข้อมูลที่ส่งไป backend เหมือนเดิมทุกประการ (ไม่ต้องแก้ฝั่ง GAS)
   const rows = [];
   cart.forEach(it=>{
     const q = it.qty || 1;
@@ -1211,7 +1140,13 @@ function renderSummary(){
     </div>
   `;
   document.getElementById('refreshBtn').addEventListener('click', loadToday);
-  document.getElementById('saveImgBtn').addEventListener('click', saveReceiptImage);
+  document.getElementById('saveImgBtn').addEventListener('click', ()=>{
+    saveReceiptAsImage(todayOrders, summaryMode, {
+      title: 'Café Amazon — สรุปวันนี้',
+      dateLabel: thaiDateLabel(new Date()) + ' · ' + todayOrders.length + ' แก้ว',
+      fileName: 'coffee-order-' + new Date().toISOString().slice(0,10) + '.png'
+    });
+  });
 }
 
 /* ====================== HISTORY VIEW ====================== */
@@ -1327,101 +1262,316 @@ function renderHistoryReceipt(date, orders){
     </div>
   `;
   document.getElementById('saveHistoryImgBtn').addEventListener('click', ()=>{
-    saveReceiptImageEl_(document.getElementById('historyReceiptCapture'), 'coffee-history-'+date+'.png');
+    saveReceiptAsImage(orders, 'byMenu', {
+      title: 'Café Amazon — สรุปย้อนหลัง',
+      dateLabel: thaiDateFromStr_(date) + ' · ' + orders.length + ' แก้ว',
+      fileName: 'coffee-history-' + date + '.png'
+    });
   });
 }
 
-/* ====================== SAVE IMAGE (mobile-safe) ======================
-   The old flow called navigator.share()/downloaded automatically right after
-   html2canvas finished rendering. On phones that delay is enough for the
-   browser to decide the tap is "too old" to count as a user gesture anymore,
-   so share() gets silently rejected and window.open()/auto-download gets
-   silently blocked — nothing visibly happens, which is exactly the bug.
+/* ============================================================
+   สร้างรูปใบเสร็จด้วย Canvas 2D API โดยตรง (ไม่ใช้ html2canvas)
+   ------------------------------------------------------------
+   เหตุผลที่เปลี่ยนมาใช้วิธีนี้: html2canvas ต้องอ่าน DOM + stylesheet
+   ของหน้าเว็บจริงตอนถ่ายภาพ ซึ่งรวมถึง <link> ฟอนต์ Google Fonts ที่เป็น
+   cross-origin — บนเว็บวิวมือถือหลายตัว (Chrome/Safari/LINE) ขั้นตอน
+   อ่าน stylesheet นี้ค้างไม่จบ ทำให้ "กำลังสร้างรูปภาพ..." ค้างเงียบ
+   หรือ timeout ทุกครั้งไม่ว่าจะปรับ config ยังไงก็ตาม
 
-   Fix: once the image is rendered we just SHOW it on screen (an <img> the
-   user can long-press to save — needs no permission or gesture at all), and
-   the actual share/download only fires when the user taps the button
-   *inside* that preview — a brand-new, fresh tap, so it's never blocked.
-*/
+   วิธีนี้วาดใบเสร็จขึ้นใหม่ทั้งหมดด้วย Canvas 2D API ตรงๆ (fillText,
+   fillRect เอง) ไม่มีการอ่าน DOM/stylesheet ของหน้าเว็บเลย จึงไม่มีทาง
+   ค้างจากปัญหาเดิมได้อีก และใช้ font ของระบบ (system font stack) แทน
+   ฟอนต์เว็บ เพื่อไม่ต้องรอโหลดฟอนต์ก่อนวาดด้วย
+   ============================================================ */
+
+const RECEIPT_LINE_GAP = 1.35;
+
+function wrapTextToLines(ctx, text, maxWidth){
+  text = String(text ?? "-").trim();
+  if(!text) return ["-"];
+  if(ctx.measureText(text).width <= maxWidth) return [text];
+
+  const words = text.split(/(\s+)/).filter(w => w !== "");
+  const roughLines = [];
+  let current = "";
+  const pushCurrent = () => { if(current.trim() !== "") roughLines.push(current.trim()); current = ""; };
+  for(const w of words){
+    const test = current + w;
+    if(ctx.measureText(test).width > maxWidth && current.trim() !== ""){
+      pushCurrent();
+      current = w;
+    } else {
+      current = test;
+    }
+  }
+  pushCurrent();
+  if(!roughLines.length) roughLines.push(text);
+
+  const finalLines = [];
+  for(const line of roughLines){
+    if(ctx.measureText(line).width <= maxWidth){ finalLines.push(line); continue; }
+    let chunk = "";
+    for(const ch of line){
+      const test = chunk + ch;
+      if(ctx.measureText(test).width > maxWidth && chunk !== ""){
+        finalLines.push(chunk);
+        chunk = ch;
+      } else {
+        chunk = test;
+      }
+    }
+    if(chunk) finalLines.push(chunk);
+  }
+  return finalLines.length ? finalLines : [text];
+}
+
+function fitTextBlock(ctx, text, maxWidth, weight, baseSize, minSize, maxLines){
+  let size = baseSize;
+  let lines = [];
+  let fitted = false;
+
+  for(size = baseSize; size >= minSize; size--){
+    ctx.font = `${weight} ${size}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+    lines = wrapTextToLines(ctx, text, maxWidth);
+    if(lines.length <= maxLines){ fitted = true; break; }
+  }
+
+  if(!fitted){
+    size = minSize;
+    ctx.font = `${weight} ${size}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+    lines = wrapTextToLines(ctx, text, maxWidth);
+    if(lines.length > maxLines){
+      lines = lines.slice(0, maxLines);
+      let last = lines[maxLines - 1];
+      while(last.length > 1 && ctx.measureText(last + "…").width > maxWidth){
+        last = last.slice(0, -1);
+      }
+      lines[maxLines - 1] = last + "…";
+    }
+  }
+
+  return { lines, size };
+}
+
+// จัดกลุ่มรายการออเดอร์ให้เป็นแถวสำหรับวาดใบเสร็จ ตามโหมด byMenu / byPerson
+function groupOrdersForReceipt(orders, mode){
+  if(mode === 'byPerson'){
+    const groups = {};
+    orders.forEach(o=>{
+      if(!groups[o.name]) groups[o.name] = {title:'คุณ'+o.name, items:[], sum:0};
+      groups[o.name].items.push(o);
+      groups[o.name].sum += Number(o.price);
+    });
+    return Object.values(groups).map(g=>({
+      title: g.title,
+      meta: g.items.map(i=>i.menu+(i.type?' ('+i.type+')':'')+(i.sweet?' '+i.sweet:'')).join(', '),
+      price: g.sum
+    }));
+  }
+  const groups = {};
+  orders.forEach(o=>{
+    const key = [o.menu, o.type, o.sweet].join('|');
+    if(!groups[key]) groups[key] = {menu:o.menu, type:o.type, sweet:o.sweet, qty:0, sum:0};
+    groups[key].qty++; groups[key].sum += Number(o.price);
+  });
+  return Object.values(groups).map(g=>({
+    title: g.menu + (g.type ? ' ('+g.type+')' : '') + ' × ' + g.qty,
+    meta: g.sweet,
+    price: g.sum
+  }));
+}
+
+// วาดใบเสร็จลง canvas แล้วคืนค่าเป็น dataURL — เป็นฟังก์ชัน sync ล้วนๆ
+// ไม่มี await ที่ไหนเลย จึงไม่มีทางค้าง ต่างจาก html2canvas เดิม
+function renderCoffeeReceiptToCanvas(orders, mode, opts){
+  const COLOR = {
+    pageBg:   "#F6F1E6",
+    cardBg:   "#FFFFFF",
+    navy:     "#122B38",
+    navyDeep: "#1E4256",
+    coral:    "#EA6C42",
+    coralDeep:"#C94F27",
+    coralTint:"#FBE3D6",
+    titleText:"#FFFFFF",
+    subText:  "rgba(255,255,255,0.78)",
+    labelText:"#9AA0A6",
+    valueText:"#1B2A31",
+    softBg:   "#FAF6EA",
+    divider:  "#E9E0CC",
+  };
+
+  const W = 640;
+  const CARD_X = 30;
+  const CARD_W = W - CARD_X * 2;
+  const PAD_X = 24;
+  const CONTENT_X = CARD_X + PAD_X;
+  const CONTENT_RIGHT = W - CARD_X - PAD_X;
+  const CONTENT_WIDTH = CONTENT_RIGHT - CONTENT_X;
+  const CARD_TOP = 30;
+
+  const measureCanvas = document.createElement('canvas');
+  const mctx = measureCanvas.getContext('2d');
+
+  const rows = groupOrdersForReceipt(orders, mode);
+  const total = orders.reduce((s,o)=>s+Number(o.price),0);
+
+  /* ---------- PASS 1: วัดข้อความทั้งหมดล่วงหน้า ---------- */
+  const titleFit = fitTextBlock(mctx, opts.title, CONTENT_WIDTH - 20, "bold", 18, 14, 2);
+  const dateFit = fitTextBlock(mctx, opts.dateLabel, CONTENT_WIDTH - 20, "500", 12.5, 10, 1);
+
+  const rowFits = rows.map(r=>{
+    const titleFitR = fitTextBlock(mctx, r.title, CONTENT_WIDTH * 0.6, "bold", 14, 11, 2);
+    const metaFitR = r.meta ? fitTextBlock(mctx, r.meta, CONTENT_WIDTH * 0.6, "400", 11.5, 10, 2) : null;
+    const priceFitR = fitTextBlock(mctx, r.price + '฿', CONTENT_WIDTH * 0.32, "bold", 14, 11, 1);
+    return { ...r, titleFitR, metaFitR, priceFitR };
+  });
+
+  const totalLabelFit = fitTextBlock(mctx, "รวมทั้งหมด", CONTENT_WIDTH * 0.5, "bold", 15, 12, 1);
+  const totalValueFit = fitTextBlock(mctx, total + " บาท", CONTENT_WIDTH * 0.5, "bold", 18, 14, 1);
+
+  /* ---------- PASS 2: คำนวณตำแหน่ง Y จริงจากผลวัด ---------- */
+  let cy = CARD_TOP;
+
+  const headerTop = cy;
+  const headerPadY = 20;
+  cy += headerPadY;
+  const titleH = titleFit.lines.length * titleFit.size * RECEIPT_LINE_GAP;
+  const titleCenterY = cy + titleH / 2;
+  cy += titleH + 5;
+  const dateH = dateFit.lines.length * dateFit.size * RECEIPT_LINE_GAP;
+  const dateCenterY = cy + dateH / 2;
+  cy += dateH;
+  cy += headerPadY;
+  const headerH = cy - headerTop;
+
+  const rowsTop = cy;
+  const rowPadX = 20;
+  const rowLayout = rowFits.map(r=>{
+    const rTop = cy;
+    const titleH2 = r.titleFitR.lines.length * r.titleFitR.size * RECEIPT_LINE_GAP;
+    const metaH2 = r.metaFitR ? r.metaFitR.lines.length * r.metaFitR.size * RECEIPT_LINE_GAP : 0;
+    const gapTM = r.metaFitR ? 4 : 0;
+    const blockH = titleH2 + gapTM + metaH2;
+    const rowPadY = 13;
+    const priceH = r.priceFitR.size * RECEIPT_LINE_GAP;
+    const rowH = Math.max(blockH, priceH) + rowPadY * 2;
+    const titleCenterY2 = rTop + rowPadY + titleH2 / 2;
+    const metaCenterY2 = titleCenterY2 + titleH2 / 2 + gapTM + metaH2 / 2;
+    const priceCenterY2 = rTop + rowH / 2;
+    cy += rowH;
+    return { ...r, rTop, rowH, titleCenterY2, metaCenterY2, priceCenterY2 };
+  });
+  const rowsH = cy - rowsTop;
+
+  const totalTop = cy;
+  const totalPadY = 18;
+  const totalH = Math.max(totalLabelFit.size, totalValueFit.size) * RECEIPT_LINE_GAP + totalPadY * 2;
+  const totalCenterY = totalTop + totalH / 2;
+  cy += totalH;
+
+  const cardH = cy - CARD_TOP;
+  const H = CARD_TOP + cardH + 20;
+
+  /* ---------- วาดจริงลง canvas ที่คำนวณขนาดแล้ว ---------- */
+  const dpr = Math.min(Math.round(window.devicePixelRatio || 1), 2);
+  const canvas = document.createElement('canvas');
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const drawRoundRect = (x, y, w, h, r, fillColor) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.restore();
+  };
+
+  const drawSafeText = (text, x, y, align, size, weight, color) => {
+    ctx.save();
+    ctx.font = `${weight} ${size}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+    ctx.fillStyle = color;
+    ctx.textBaseline = "middle";
+    if(align === "right"){
+      ctx.textAlign = "left";
+      const m = ctx.measureText(text);
+      const inkRight = (typeof m.actualBoundingBoxRight === "number") ? m.actualBoundingBoxRight : m.width;
+      ctx.fillText(text, x - inkRight, y);
+    } else {
+      ctx.textAlign = align;
+      ctx.fillText(text, x, y);
+    }
+    ctx.restore();
+  };
+
+  const drawFittedBlock = (fit, x, centerY, align, weight, color) => {
+    const totalH = fit.lines.length * fit.size * RECEIPT_LINE_GAP;
+    let y = centerY - totalH / 2 + (fit.size * RECEIPT_LINE_GAP) / 2;
+    fit.lines.forEach(line=>{
+      drawSafeText(line, x, y, align, fit.size, weight, color);
+      y += fit.size * RECEIPT_LINE_GAP;
+    });
+  };
+
+  ctx.fillStyle = COLOR.pageBg;
+  ctx.fillRect(0, 0, W, H);
+  drawRoundRect(CARD_X, CARD_TOP, CARD_W, cardH, 24, COLOR.cardBg);
+
+  drawRoundRect(CARD_X, headerTop, CARD_W, headerH, 24, COLOR.navy);
+  drawRoundRect(CARD_X, headerTop + headerH - 24, CARD_W, 24, 0, COLOR.navy);
+  drawFittedBlock(titleFit, W / 2, titleCenterY, "center", "bold", COLOR.titleText);
+  drawFittedBlock(dateFit, W / 2, dateCenterY, "center", "500", COLOR.subText);
+
+  rowLayout.forEach((r, idx)=>{
+    if(idx > 0){
+      ctx.save();
+      ctx.strokeStyle = COLOR.divider;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4,4]);
+      ctx.beginPath();
+      ctx.moveTo(CONTENT_X, r.rTop);
+      ctx.lineTo(CONTENT_RIGHT, r.rTop);
+      ctx.stroke();
+      ctx.restore();
+    }
+    drawFittedBlock(r.titleFitR, CONTENT_X, r.titleCenterY2, "left", "bold", COLOR.valueText);
+    if(r.metaFitR) drawFittedBlock(r.metaFitR, CONTENT_X, r.metaCenterY2, "left", "400", COLOR.labelText);
+    drawFittedBlock(r.priceFitR, CONTENT_RIGHT, r.priceCenterY2, "right", "bold", COLOR.navyDeep);
+  });
+
+  drawRoundRect(CARD_X, totalTop, CARD_W, totalH, 0, COLOR.coralTint);
+  drawFittedBlock(totalLabelFit, CONTENT_X, totalCenterY, "left", "bold", COLOR.navy);
+  drawFittedBlock(totalValueFit, CONTENT_RIGHT, totalCenterY, "right", "bold", COLOR.navy);
+
+  return canvas.toDataURL("image/png");
+}
+
+/* ====================== SAVE / SHARE IMAGE ====================== */
+function dataUrlToBlob_(dataUrl){
+  const [header, base64] = dataUrl.split(',');
+  const mimeMatch = /:(.*?);/.exec(header);
+  const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+  const bin = atob(base64);
+  const arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], {type:mime});
+}
+
 let __previewBlob = null;
 let __previewFname = 'coffee-order.png';
 
-// canvas.toBlob() is where the previous silent-failure bug lived: on some
-// mobile webviews (seen across LINE's in-app browser, Safari, and Chrome
-// alike — it's a webview/canvas quirk, not one specific app) the callback
-// either never fires or fires with blob=null, and the old code just
-// resolved(false) with no error — so tapping "บันทึกเป็นรูปภาพ" did nothing
-// and nobody was told why. This version (1) falls back to toDataURL, which
-// is far more reliably supported, if toBlob is slow or empty, and (2) throws
-// instead of silently resolving so the caller's catch block can finally show
-// an error toast if image generation truly fails.
-
-  // ครอบ promise ด้วย timeout — กัน html2canvas ค้างเงียบไม่มีวันจบ
-// (ปัญหาที่เจอ: toast "กำลังสร้างรูปภาพ..." ขึ้นแล้วเงียบ = ค้างตรงนี้)
-function withTimeout_(promise, ms, timeoutMsg){
-  let timer;
-  const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error(timeoutMsg)), ms);
-  });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
-}
-
-// ดักข้อผิดพลาดที่หลุดรอดจาก try/catch ทั้งหมด (เผื่อไว้กรณีอื่นๆ ในอนาคต)
-// โชว์เป็น toast เพราะมือถือส่วนใหญ่เปิด console ดูไม่ได้
-window.addEventListener('error', (e)=>{
-  console.error('Uncaught error:', e.error || e.message);
-  showToast('เกิดข้อผิดพลาด: ' + (e.message || 'unknown'), 4000);
-});
-window.addEventListener('unhandledrejection', (e)=>{
-  console.error('Unhandled rejection:', e.reason);
-  showToast('เกิดข้อผิดพลาด: ' + (e.reason && e.reason.message ? e.reason.message : 'unknown'), 4000);
-});
-
-  
-function canvasToBlob_(canvas){
-  return new Promise((resolve)=>{
-    let done = false;
-    const finish = (blob)=>{ if(done) return; done = true; resolve(blob); };
-
-    const fallbackViaDataUrl = ()=>{
-      try{
-        const dataUrl = canvas.toDataURL('image/png');
-        const bin = atob(dataUrl.split(',')[1]);
-        const arr = new Uint8Array(bin.length);
-        for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
-        finish(new Blob([arr], {type:'image/png'}));
-      }catch(e){
-        console.error('toDataURL fallback failed', e);
-        finish(null);
-      }
-    };
-
-    try{
-      canvas.toBlob(blob=>{
-        if(blob){ finish(blob); } else { fallbackViaDataUrl(); }
-      }, 'image/png');
-    }catch(e){
-      console.error('toBlob threw', e);
-      fallbackViaDataUrl();
-    }
-
-    // Safety net: some webviews never call the toBlob callback at all on
-    // certain canvas sizes. Don't let the button hang forever in silence —
-    // try the fallback, and if that also fails, finish(null) so the caller
-    // can surface a real error instead of nothing happening.
-    setTimeout(()=>{ if(!done) fallbackViaDataUrl(); }, 1500);
-  });
-}
-
-async function openImagePreview_(canvas, fname){
-  const blob = await canvasToBlob_(canvas);
-  if(!blob){
-    throw new Error('สร้างรูปภาพไม่สำเร็จ (blob ว่างเปล่า) — อาจเป็นเพราะรูปในรายการโหลดไม่ครบ หรือเบราว์เซอร์นี้ไม่รองรับ');
-  }
-  __previewBlob = blob;
+function openImagePreview_(dataUrl, fname){
+  __previewBlob = dataUrlToBlob_(dataUrl);
   __previewFname = fname;
-  const url = URL.createObjectURL(blob);
-  document.getElementById('imgPrevImg').src = url;
+  document.getElementById('imgPrevImg').src = dataUrl;
   document.getElementById('imgPrevBackdrop').classList.add('open');
 }
 
@@ -1431,8 +1581,6 @@ document.getElementById('imgPrevClose').addEventListener('click', ()=>{
 
 document.getElementById('imgPrevSaveBtn').addEventListener('click', async ()=>{
   if(!__previewBlob) return;
-  // เรียก share() เป็นบรรทัดแรกทันทีในตัวจัดการอีเวนต์นี้ (ไม่มี await ใดๆ ก่อนหน้า)
-  // เพื่อรักษาสถานะ "ผู้ใช้แตะเอง" ไว้ ไม่ให้เบราว์เซอร์บล็อกแบบเงียบๆ
   if(navigator.canShare && navigator.share){
     try{
       const file = new File([__previewBlob], __previewFname, {type:'image/png'});
@@ -1442,7 +1590,7 @@ document.getElementById('imgPrevSaveBtn').addEventListener('click', async ()=>{
         return;
       }
     }catch(err){
-      if(err && err.name === 'AbortError') return; // ผู้ใช้กดยกเลิกเอง ไม่ต้องทำอะไรต่อ
+      if(err && err.name === 'AbortError') return;
       console.error('share failed, falling back', err);
     }
   }
@@ -1457,61 +1605,15 @@ document.getElementById('imgPrevSaveBtn').addEventListener('click', async ()=>{
   showToast('บันทึกรูปภาพแล้ว (หรือกดค้างที่รูปด้านบนเพื่อบันทึก) ✅');
 });
 
-async function saveReceiptImageEl_(node, fname){
+// ฟังก์ชันกลาง เรียกจากทั้งหน้าสรุปวันนี้และหน้าประวัติย้อนหลัง
+function saveReceiptAsImage(orders, mode, opts){
   showToast('กำลังสร้างรูปภาพ...');
-  node.classList.add('capturing-plain');
   try{
-    const canvas = await withTimeout_(
-  html2canvas(node, {
-    scale:1.5,
-    backgroundColor:'#ffffff',
-    useCORS:false,
-    logging:false,
-    onclone:(clonedDoc)=>{
-      // ตัด stylesheet ฟอนต์ Google Fonts ออกจากสำเนาที่ใช้ถ่ายภาพเท่านั้น —
-      // เพราะ html2canvas ค้างตอนพยายามอ่าน cross-origin stylesheet นี้
-      clonedDoc.querySelectorAll('link[href*="fonts.googleapis.com"]').forEach(l => l.remove());
-    }
-  }),
-  15000,
-  'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 15 วิ) — ลองใหม่อีกครั้ง'
-);
-    await openImagePreview_(canvas, fname);
+    const dataUrl = renderCoffeeReceiptToCanvas(orders, mode, opts);
+    openImagePreview_(dataUrl, opts.fileName);
   }catch(err){
     console.error(err);
-    showToast('บันทึกรูปไม่สำเร็จ: ' + (err && err.message ? err.message : 'ลองใหม่อีกครั้ง'), 4000);
-  }finally{
-    node.classList.remove('capturing-plain');
-  }
-}
-
-async function saveReceiptImage(){
-  const node = document.getElementById('receiptCapture');
-  showToast('กำลังสร้างรูปภาพ...');
-  node.classList.add('capturing-plain');
-  try{
-    const canvas = await withTimeout_(
-  html2canvas(node, {
-    scale:1.5,
-    backgroundColor:'#ffffff',
-    useCORS:false,
-    logging:false,
-    onclone:(clonedDoc)=>{
-      // ตัด stylesheet ฟอนต์ Google Fonts ออกจากสำเนาที่ใช้ถ่ายภาพเท่านั้น —
-      // เพราะ html2canvas ค้างตอนพยายามอ่าน cross-origin stylesheet นี้
-      clonedDoc.querySelectorAll('link[href*="fonts.googleapis.com"]').forEach(l => l.remove());
-    }
-  }),
-  15000,
-  'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 15 วิ) — ลองใหม่อีกครั้ง'
-);
-    const fname = 'coffee-order-' + new Date().toISOString().slice(0,10) + '.png';
-    await openImagePreview_(canvas, fname);
-  }catch(err){
-    console.error(err);
-    showToast('บันทึกรูปไม่สำเร็จ: ' + (err && err.message ? err.message : 'ลองใหม่อีกครั้ง'), 4000);
-  }finally{
-    node.classList.remove('capturing-plain');
+    showToast('สร้างรูปไม่สำเร็จ: ' + (err && err.message ? err.message : 'ลองใหม่อีกครั้ง'), 4000);
   }
 }
 
