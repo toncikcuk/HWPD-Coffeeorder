@@ -1350,6 +1350,29 @@ let __previewFname = 'coffee-order.png';
 // is far more reliably supported, if toBlob is slow or empty, and (2) throws
 // instead of silently resolving so the caller's catch block can finally show
 // an error toast if image generation truly fails.
+
+  // ครอบ promise ด้วย timeout — กัน html2canvas ค้างเงียบไม่มีวันจบ
+// (ปัญหาที่เจอ: toast "กำลังสร้างรูปภาพ..." ขึ้นแล้วเงียบ = ค้างตรงนี้)
+function withTimeout_(promise, ms, timeoutMsg){
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(timeoutMsg)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+// ดักข้อผิดพลาดที่หลุดรอดจาก try/catch ทั้งหมด (เผื่อไว้กรณีอื่นๆ ในอนาคต)
+// โชว์เป็น toast เพราะมือถือส่วนใหญ่เปิด console ดูไม่ได้
+window.addEventListener('error', (e)=>{
+  console.error('Uncaught error:', e.error || e.message);
+  showToast('เกิดข้อผิดพลาด: ' + (e.message || 'unknown'), 4000);
+});
+window.addEventListener('unhandledrejection', (e)=>{
+  console.error('Unhandled rejection:', e.reason);
+  showToast('เกิดข้อผิดพลาด: ' + (e.reason && e.reason.message ? e.reason.message : 'unknown'), 4000);
+});
+
+  
 function canvasToBlob_(canvas){
   return new Promise((resolve)=>{
     let done = false;
@@ -1432,7 +1455,11 @@ document.getElementById('imgPrevSaveBtn').addEventListener('click', async ()=>{
 async function saveReceiptImageEl_(node, fname){
   showToast('กำลังสร้างรูปภาพ...');
   try{
-    const canvas = await html2canvas(node, {scale:2, backgroundColor:'#ffffff', useCORS:true});
+    const canvas = await withTimeout_(
+  html2canvas(node, {scale:2, backgroundColor:'#ffffff', useCORS:true}),
+  10000,
+  'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 10 วิ) — ลองใหม่อีกครั้ง'
+);
     await openImagePreview_(canvas, fname);
   }catch(err){
     console.error(err);
@@ -1444,7 +1471,11 @@ async function saveReceiptImage(){
   const node = document.getElementById('receiptCapture');
   showToast('กำลังสร้างรูปภาพ...');
   try{
-    const canvas = await html2canvas(node, {scale:2, backgroundColor:'#ffffff', useCORS:true});
+    const canvas = await withTimeout_(
+  html2canvas(node, {scale:2, backgroundColor:'#ffffff', useCORS:true}),
+  10000,
+  'สร้างรูปภาพใช้เวลานานเกินไป (เกิน 10 วิ) — ลองใหม่อีกครั้ง'
+);
     const fname = 'coffee-order-' + new Date().toISOString().slice(0,10) + '.png';
     await openImagePreview_(canvas, fname);
   }catch(err){
