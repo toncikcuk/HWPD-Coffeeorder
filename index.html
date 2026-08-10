@@ -383,17 +383,28 @@
   .op-size-pill.sel{background:var(--coral); border-color:var(--coral); color:#fff; box-shadow:0 8px 16px rgba(234,108,66,0.32);}
 
   .op-footer{
-    display:flex; align-items:center; gap:12px; padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; gap:10px;
+    padding:14px 20px calc(14px + env(safe-area-inset-bottom));
     border-top:1.5px solid var(--line); flex-shrink:0; background:#fff;
   }
+  .op-footer-top{display:flex; align-items:center; justify-content:space-between;}
   .op-total .lbl{font-size:10.5px; color:var(--muted); font-weight:600;}
   .op-total .amt{font-size:19px; font-weight:800; color:var(--coral-deep); font-family:'IBM Plex Mono',monospace;}
+  .op-footer-btns{display:flex; gap:10px;}
   .op-addbtn{
-    flex:1; background:linear-gradient(135deg,var(--navy-2),var(--navy-1)); color:#fff; border:none; border-radius:100px;
+    flex:1; border:none; border-radius:100px;
     padding:14px; font-weight:700; font-size:14px; cursor:pointer; font-family:'Prompt',sans-serif;
-    box-shadow:0 10px 20px rgba(18,43,56,0.28); transition:transform .15s var(--ease);
+    transition:transform .15s var(--ease), opacity .15s var(--ease);
   }
   .op-addbtn:active{transform:scale(0.97);}
+  .op-addbtn:disabled{opacity:0.6; cursor:not-allowed; transform:none;}
+  .op-addbtn.secondary{
+    background:var(--sky-tint); color:var(--navy-1); box-shadow:none;
+  }
+  .op-addbtn.primary{
+    background:linear-gradient(135deg,var(--coral),var(--coral-deep)); color:#fff;
+    box-shadow:0 10px 20px rgba(201,79,39,0.34);
+  }
 
   .qty-stepper{
     display:flex; align-items:center; gap:14px; background:#FAF6EA;
@@ -612,11 +623,16 @@
     </div>
 
     <div class="op-footer">
-      <div class="op-total">
-        <div class="lbl">ราคารวม</div>
-        <div class="amt num" id="mTotal">0 บาท</div>
+      <div class="op-footer-top">
+        <div class="op-total">
+          <div class="lbl">ราคารวม</div>
+          <div class="amt num" id="mTotal">0 บาท</div>
+        </div>
       </div>
-      <button class="op-addbtn" id="mAdd">เพิ่มลงตะกร้า</button>
+      <div class="op-footer-btns">
+        <button type="button" class="op-addbtn secondary" id="mAdd">เพิ่มลงตะกร้า</button>
+        <button type="button" class="op-addbtn primary" id="mOrderNow">⚡ สั่งเลย</button>
+      </div>
     </div>
   </div>
 </div>
@@ -894,28 +910,87 @@ document.getElementById('mQtyInc').addEventListener('click', ()=>{
   updateTotalDisplay();
 });
 
-document.getElementById('mAdd').addEventListener('click', ()=>{
+/* ค่ากลาง: อ่านค่าจากฟอร์มใน modal แล้วสร้างเป็น object รายการ
+   ใช้ร่วมกันทั้งปุ่ม "เพิ่มลงตะกร้า" และปุ่ม "สั่งเลย" เพื่อไม่ให้โค้ดซ้ำ */
+function buildCartEntryFromModal(){
   const orderer = document.getElementById('mOrderer').value.trim();
   if(!orderer){
     showToast("กรอกชื่อผู้สั่งก่อนนะ");
     document.getElementById('mOrderer').focus();
-    return;
+    return null;
   }
   const note = document.getElementById('mNote').value.trim();
   const qty = currentQty;
   const localId = 'c'+Date.now()+Math.random().toString(36).slice(2,7);
   const finalPrice = currentUnitPrice();
-  const entry = {
+  return {
     localId, name: orderer, category: currentItem.cat, menu: currentItem.name,
     icon: currentItem.icon, image: currentItem.image, sweet: currentSelSweet,
     type: currentSelType, typeLabel: TYPE_LABELS[currentSelType] || currentSelType,
     price: finalPrice, note: note, qty: qty
   };
+}
+
+/* แปลง entry เดียว (ที่อาจมี qty > 1) ให้เป็นแถวๆ สำหรับส่งขึ้น backend
+   ใช้ลอจิกเดียวกับ expandCartForBackend() แต่ทำงานกับรายการเดียว */
+function expandEntryForBackend(entry){
+  const rows = [];
+  const q = entry.qty || 1;
+  for(let i=0;i<q;i++){
+    rows.push({
+      localId: entry.localId + '-' + i,
+      name: entry.name, category: entry.category, menu: entry.menu,
+      icon: entry.icon, type: entry.type, sweet: entry.sweet, price: entry.price, note: entry.note
+    });
+  }
+  return rows;
+}
+
+document.getElementById('mAdd').addEventListener('click', ()=>{
+  const entry = buildCartEntryFromModal();
+  if(!entry) return;
   cart.push(entry);
   renderCart();
   updateCartBadge();
-  showToast(`เพิ่ม ${currentItem.name}${qty>1?(' x'+qty):''} ให้คุณ${orderer} แล้ว`);
+  showToast(`เพิ่ม ${currentItem.name}${entry.qty>1?(' x'+entry.qty):''} ให้คุณ${entry.name} แล้ว`);
   closeModal();
+});
+
+/* ปุ่ม "สั่งเลย" — ส่งคำสั่งซื้อขึ้น backend ทันที ไม่ต้องผ่านตะกร้า
+   เหมาะกับกรณีสั่งทีละแก้ว/ทีละคน ไม่ต้องกดยืนยันที่หน้าตะกร้าซ้ำอีกรอบ */
+document.getElementById('mOrderNow').addEventListener('click', async ()=>{
+  const entry = buildCartEntryFromModal();
+  if(!entry) return;
+
+  const orderNowBtn = document.getElementById('mOrderNow');
+  const addBtn = document.getElementById('mAdd');
+  const itemNameForToast = currentItem.name;
+  const originalLabel = orderNowBtn.textContent;
+
+  orderNowBtn.disabled = true;
+  addBtn.disabled = true;
+  orderNowBtn.textContent = 'กำลังส่ง...';
+
+  try{
+    const rows = expandEntryForBackend(entry);
+    const res = await fetch(GAS_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'addItems', items: rows })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'unknown error');
+    showToast(`สั่ง ${itemNameForToast}${entry.qty>1?(' x'+entry.qty):''} ให้คุณ${entry.name} เรียบร้อย ✅`);
+    closeModal();
+    loadToday();
+  }catch(err){
+    console.error(err);
+    showToast('สั่งไม่สำเร็จ ลองใหม่อีกครั้ง');
+  }finally{
+    orderNowBtn.disabled = false;
+    addBtn.disabled = false;
+    orderNowBtn.textContent = originalLabel;
+  }
 });
 
 /* ====================== TOAST ====================== */
