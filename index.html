@@ -305,6 +305,25 @@
   .opt-pill.sel{background:var(--navy-1); border-color:var(--navy-1); color:#fff;}
   .modal-actions{display:flex; gap:10px; margin-top:22px;}
 
+  .confirm-backdrop{ z-index:150; }
+  .confirm-eyebrow{
+    font-size:11px; color:var(--muted); font-weight:700; letter-spacing:.4px;
+    text-transform:uppercase; margin-bottom:12px;
+  }
+  .cf-row{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+    padding:10px 0; border-bottom:1px dashed var(--line); font-size:13px;
+  }
+  .cf-row:last-of-type{border-bottom:none;}
+  .cf-label{color:var(--muted); font-weight:600; flex-shrink:0;}
+  .cf-value{font-weight:700; color:var(--ink); text-align:right;}
+  .cf-row.cf-total{
+    margin-top:8px; padding:14px 0 0; border-top:1.5px solid var(--line); border-bottom:none;
+    align-items:center;
+  }
+  .cf-row.cf-total .cf-label{color:var(--navy-1); font-size:14.5px;}
+  .cf-row.cf-total .cf-value{color:var(--coral-deep); font-size:17px; font-family:'IBM Plex Mono',monospace;}
+
   .modal-sheet.op{
     padding:0; display:flex; flex-direction:column; overflow:hidden;
     position:fixed; inset:0; width:100%; max-width:100%;
@@ -637,6 +656,24 @@
   </div>
 </div>
 
+<div class="modal-backdrop confirm-backdrop" id="confirmBackdrop">
+  <div class="modal-sheet" id="confirmSheet">
+    <div class="confirm-eyebrow">ตรวจสอบก่อนสั่ง</div>
+    <div class="modal-head">
+      <div class="modal-icon" id="cfIcon">☕</div>
+      <div>
+        <div class="modal-title" id="cfName">-</div>
+        <div class="modal-price num" id="cfUnitPrice">-</div>
+      </div>
+    </div>
+    <div id="cfDetails"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="cfEdit">แก้ไข</button>
+      <button type="button" class="btn btn-primary" id="cfConfirm">✅ ยืนยันสั่งเลย</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div class="imgprev-backdrop" id="imgPrevBackdrop">
@@ -956,20 +993,62 @@ document.getElementById('mAdd').addEventListener('click', ()=>{
   closeModal();
 });
 
-/* ปุ่ม "สั่งเลย" — ส่งคำสั่งซื้อขึ้น backend ทันที ไม่ต้องผ่านตะกร้า
-   เหมาะกับกรณีสั่งทีละแก้ว/ทีละคน ไม่ต้องกดยืนยันที่หน้าตะกร้าซ้ำอีกรอบ */
-document.getElementById('mOrderNow').addEventListener('click', async ()=>{
+/* ====================== ORDER NOW + CONFIRM MODAL ======================
+   ปุ่ม "สั่งเลย" ไม่ส่งคำสั่งซื้อทันที แต่เปิด modal สรุปรายการให้ตรวจสอบ
+   ก่อนหนึ่งชั้น (ชนิด/ความหวาน/จำนวน/ชื่อผู้สั่ง/หมายเหตุ/ราคารวม)
+   กดยืนยันในนั้นอีกทีถึงจะยิงขึ้น backend จริง — ไม่ต้องไปกดที่ตะกร้า */
+let pendingQuickOrder = null;
+const confirmBackdrop = document.getElementById('confirmBackdrop');
+
+function openConfirmModal(entry, itemName){
+  pendingQuickOrder = { entry, itemName };
+
+  const iconEl = document.getElementById('cfIcon');
+  iconEl.innerHTML = currentItem && currentItem.image
+    ? `<img src="${currentItem.image}" alt="${itemName}" onerror="this.parentElement.textContent='${currentItem.icon}';">`
+    : (currentItem ? currentItem.icon : '☕');
+  document.getElementById('cfName').textContent = itemName;
+  document.getElementById('cfUnitPrice').textContent = entry.price + ' บาท / แก้ว';
+
+  const showType = currentItem && currentItem.types && currentItem.types.length > 1;
+  const rows = [];
+  if(showType) rows.push({label:'ชนิด', value: entry.typeLabel});
+  rows.push({label:'ความหวาน', value: entry.sweet});
+  rows.push({label:'จำนวน', value: entry.qty + ' แก้ว'});
+  rows.push({label:'ชื่อผู้สั่ง', value: 'คุณ' + entry.name});
+  if(entry.note) rows.push({label:'หมายเหตุ', value: entry.note});
+
+  document.getElementById('cfDetails').innerHTML =
+    rows.map(r=>`<div class="cf-row"><span class="cf-label">${r.label}</span><span class="cf-value">${r.value}</span></div>`).join('') +
+    `<div class="cf-row cf-total"><span class="cf-label">ราคารวม</span><span class="cf-value num">${entry.price * entry.qty} บาท</span></div>`;
+
+  confirmBackdrop.classList.add('open');
+}
+
+function closeConfirmModal(){
+  confirmBackdrop.classList.remove('open');
+  pendingQuickOrder = null;
+}
+
+document.getElementById('cfEdit').addEventListener('click', closeConfirmModal);
+confirmBackdrop.addEventListener('click', (e)=>{ if(e.target===confirmBackdrop) closeConfirmModal(); });
+
+document.getElementById('mOrderNow').addEventListener('click', ()=>{
   const entry = buildCartEntryFromModal();
   if(!entry) return;
+  openConfirmModal(entry, currentItem.name);
+});
 
-  const orderNowBtn = document.getElementById('mOrderNow');
-  const addBtn = document.getElementById('mAdd');
-  const itemNameForToast = currentItem.name;
-  const originalLabel = orderNowBtn.textContent;
+document.getElementById('cfConfirm').addEventListener('click', async ()=>{
+  if(!pendingQuickOrder) return;
+  const { entry, itemName } = pendingQuickOrder;
 
-  orderNowBtn.disabled = true;
-  addBtn.disabled = true;
-  orderNowBtn.textContent = 'กำลังส่ง...';
+  const confirmBtn = document.getElementById('cfConfirm');
+  const editBtn = document.getElementById('cfEdit');
+  const originalLabel = confirmBtn.textContent;
+  confirmBtn.disabled = true;
+  editBtn.disabled = true;
+  confirmBtn.textContent = 'กำลังส่ง...';
 
   try{
     const rows = expandEntryForBackend(entry);
@@ -980,16 +1059,17 @@ document.getElementById('mOrderNow').addEventListener('click', async ()=>{
     });
     const data = await res.json();
     if(!data.ok) throw new Error(data.error || 'unknown error');
-    showToast(`สั่ง ${itemNameForToast}${entry.qty>1?(' x'+entry.qty):''} ให้คุณ${entry.name} เรียบร้อย ✅`);
+    showToast(`สั่ง ${itemName}${entry.qty>1?(' x'+entry.qty):''} ให้คุณ${entry.name} เรียบร้อย ✅`);
+    closeConfirmModal();
     closeModal();
     loadToday();
   }catch(err){
     console.error(err);
     showToast('สั่งไม่สำเร็จ ลองใหม่อีกครั้ง');
   }finally{
-    orderNowBtn.disabled = false;
-    addBtn.disabled = false;
-    orderNowBtn.textContent = originalLabel;
+    confirmBtn.disabled = false;
+    editBtn.disabled = false;
+    confirmBtn.textContent = originalLabel;
   }
 });
 
