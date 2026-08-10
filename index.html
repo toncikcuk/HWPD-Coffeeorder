@@ -923,7 +923,9 @@ function openModal(item){
 
   modalBackdrop.classList.add('open');
   document.body.style.overflow = 'hidden';
-  setTimeout(()=>document.getElementById('mOrderer').focus(), 200);
+  /* ไม่ auto-focus ช่องชื่อผู้สั่งตอนเปิด modal แล้ว เพราะบนมือถือคีย์บอร์ด
+     จะเด้งขึ้นมาบังตัวเลือกชนิด (ร้อน/เย็น/ปั่น) ทันที ผู้ใช้จะเลือกชนิด/
+     ความหวานก่อนแล้วค่อยแตะช่องชื่อเองตามลำดับที่เห็นบนหน้าจอ */
 }
 function closeModal(){
   modalBackdrop.classList.remove('open');
